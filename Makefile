@@ -1,9 +1,10 @@
 CC=gcc
 
-OBJS=main.o object.o print.o read.o
+OBJS=main.o alloc.o object.o print.o read.o
+
+CFLAGS=-g
 
 PROGRAM=object
-
 all: $(PROGRAM)
 
 $(PROGRAM): $(OBJS)
