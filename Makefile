@@ -1,6 +1,6 @@
 CC=gcc
 
-OBJS=main.o sexp.o print.o read.o
+OBJS=main.o object.o print.o read.o
 
 PROGRAM=object
 

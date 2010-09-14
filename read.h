@@ -1,6 +1,9 @@
 #ifndef READ_H
 #define READ_H
 
-void read();
+#include <stdio.h>
+#include "types.h"
+
+ref_t read(FILE *in);
 
 #endif

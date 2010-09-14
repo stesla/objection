@@ -1,7 +1,5 @@
 #include "read.h"
 
-#include <stdio.h>
-
-void read() {
-  puts("read");
+ref_t read(FILE *in) {
+  return 0;
 }
