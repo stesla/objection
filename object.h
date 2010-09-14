@@ -13,8 +13,8 @@
 #define FIXNUM_MAX  536870911
 #define FIXNUM_MIN -536870912
 #define isfixnum(obj) (!((obj) & 0x0003))
+#define isinteger(obj) (isfixnum(obj))
 ref_t fixnum(int i);
-int fixnum_to_int(ref_t obj);
 
 /* Lists */
 #define PTR_MASK 0x0007
@@ -27,9 +27,13 @@ ref_t cdr(ref_t list);
 /* Strings */
 bool isstring(ref_t obj);
 ref_t string(const char *str);
-const char *string_to_cstr(ref_t obj);
 
 /* Symbols */
 bool issymbol(ref_t obj);
+
+/* Casts */
+int intvalue(ref_t obj);
+const char *strvalue(ref_t obj);
+
 
 #endif

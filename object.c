@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include "alloc.h"
@@ -36,7 +37,7 @@ ref_t fixnum(int i) {
   return i << 2;
 }
 
-int fixnum_to_int(ref_t obj) {
+static int fixnum_to_int(ref_t obj) {
   assert(isfixnum(obj));
   return ((int32_t) obj) >> 2;
 }
@@ -51,17 +52,17 @@ struct cons {
 ref_t cons(ref_t car, ref_t cdr) {
   struct cons *ptr = safe_malloc(sizeof(struct cons));
   ptr->car = car, ptr->cdr = cdr;
-  return ((ref_t) ptr) | LIST_MASK;
+  return ((ref_t) ptr) + LIST_MASK;
 }
 
 ref_t car(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj ^ LIST_MASK))->car;
+  return ((struct cons *) (obj - LIST_MASK))->car;
 }
 
 ref_t cdr(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj ^ LIST_MASK))->cdr;
+  return ((struct cons *) (obj - LIST_MASK))->cdr;
 }
 
 /*
@@ -77,19 +78,19 @@ struct string {
 bool isstring(ref_t obj) {
   if ((obj & PTR_MASK) != PTR_MASK)
     return NO;
-  return ((struct string *) (obj ^ PTR_MASK))->tag == STRING_TAG;
+  return ((struct string *) (obj - PTR_MASK))->tag == STRING_TAG;
 }
 
 ref_t string(const char *str) {
   struct string *ptr = safe_malloc(sizeof(struct string) + strlen(str));
   ptr->tag = STRING_TAG;
   strcpy(ptr->bytes, str);
-  return ((ref_t) ptr) | PTR_MASK;
+  return ((ref_t) ptr) + PTR_MASK;
 }
 
-const char *string_to_cstr(ref_t obj) {
+static const char *string_to_str(ref_t obj) {
   assert(isstring(obj));
-  return ((struct string *) (obj ^ PTR_MASK))->bytes;
+  return ((struct string *) (obj - PTR_MASK))->bytes;
 }
 
 /*
@@ -97,4 +98,19 @@ const char *string_to_cstr(ref_t obj) {
  */
 bool issymbol(ref_t obj) {
   return NO;
+}
+
+/*
+ * Casts
+ */
+int intvalue(ref_t obj) {
+  if (isfixnum(obj))
+      return fixnum_to_int(obj);
+  abort();
+}
+
+const char *strvalue(ref_t obj) {
+  if (isstring(obj))
+    return string_to_str(obj);
+  abort();
 }

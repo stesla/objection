@@ -23,10 +23,10 @@ void print(ref_t obj) {
     printf("nil");
   else if (istrue(obj))
     printf("true");
-  else if (isfixnum(obj))
-    printf("%i", fixnum_to_int(obj));
+  else if (isinteger(obj))
+    printf("%i", intvalue(obj));
   else if (isstring(obj))
-    printf("\"%s\"", string_to_cstr(obj));
+    printf("\"%s\"", strvalue(obj));
   else if (islist(obj)) {
     putchar('(');
     printlist(obj);
