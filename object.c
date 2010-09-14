@@ -12,12 +12,16 @@
  * what they mean about the remaining high-order bits.
  *
  * x00 - Fixnum (this eats up two tags, but that gives us 2^30 fixnums)
- * x10 - Other immediate (e.g. symbol)
+ * x10 - Other Immediate (e.g. nil, true)
  * xx1 - Pointer
  * 001 -   UNUSED
  * 011 -   List Pointer
  * 101 -   Function Pointer
  * 111 -   Other Pointer
+ *
+ * Other Immediates:
+ * 0x0002 - nil
+ * 0x0006 - true
  */
 
 /* Predicates */
@@ -30,20 +34,12 @@ bool islist(ref_t obj) {
   return obj & 0x0003;
 }
 
-bool isnil(ref_t obj) {
-  return FALSE;
-}
-
 bool isstring(ref_t obj) {
-  return FALSE;
+  return NO;
 }
 
 bool issymbol(ref_t obj) {
-  return FALSE;
-}
-
-bool istruth(ref_t obj) {
-  return FALSE;
+  return NO;
 }
 
 /* Constructors */
