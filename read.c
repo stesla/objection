@@ -13,19 +13,6 @@ static int skipspace(FILE *in) {
   return ch;
 }
 
-static ref_t readnumber(int ch, FILE *in) {
-  buffer *buf = allocbuffer();
-  do {
-    buf = bufferappend(buf, ch);
-    ch = getc(in);
-  } while (isdigit(ch));
-  ungetc(ch, in);
-  bufferappend(buf, 0);
-  ref_t result = fixnum(atoi(bufferstring(buf)));
-  freebuffer(buf);
-  return result;
-}
-
 static ref_t readstring(FILE *in) {
   buffer *buf = allocbuffer();
   int ch = getc(in);
@@ -38,27 +25,37 @@ static ref_t readstring(FILE *in) {
   return result;
 }
 
-static ref_t readsymbol(int ch, FILE *in) {
-  buffer *buf = allocbuffer();
+static void readtoken(int ch, FILE *in, buffer *buf) {
   do {
-    buf = bufferappend(buf, ch);
+    bufferappend(buf, ch);
     ch = getc(in);
-  } while (isalnum(ch));
-  ungetc(ch, in);
-  bufferappend(buf, 0);
-  const char *name = bufferstring(buf);
-  ref_t result;
-  if (!strcmp("nil", name))
-    result = NIL;
-  else if (!strcmp("true", name))
-    result = TRUE;
-  else
-    result = symbol(bufferstring(buf));
-  freebuffer(buf);
-  return result;
+    if (ch == ')') {
+      ungetc(ch, in);
+      break;
+    }
+  } while (!isspace(ch));
 }
 
-static ref_t _readsexp(int ch, FILE *in);
+static ref_t parsetoken(const char *token) {
+  if (!strcmp("nil", token))
+    return NIL;
+  if (!strcmp("true", token))
+    return TRUE;
+  if (isdigit(token[0]) || token[0] == '-') {
+    char *end = NULL;
+    long int val = strtol(token, &end, 0);
+    if (!*end) {
+      if (FIXNUM_MIN <= val && val <= FIXNUM_MAX)
+        return fixnum(val);
+      else
+        /* TODO */
+        die("Bignums not yet supported");
+    }
+  }
+  return symbol(token);
+}
+
+static ref_t readnext(int ch, FILE *in);
 
 static ref_t readseq(bool islist, FILE *in) {
   int ch = skipspace(in);
@@ -66,7 +63,7 @@ static ref_t readseq(bool islist, FILE *in) {
       die("End of file reached before end of list");
   else if (ch == EOF || islist && ch == ')')
     return NIL;
-  ref_t car = _readsexp(ch, in);
+  ref_t car = readnext(ch, in);
   ref_t cdr = readseq(islist, in);
   return cons(car, cdr);
 }
@@ -75,21 +72,23 @@ static inline ref_t readlist(FILE *in) {
   return readseq(YES, in);
 }
 
-static ref_t _readsexp(int ch, FILE *in) {
+static ref_t readnext(int ch, FILE *in) {
   if (ch == '(')
     return readlist(in);
   if (ch == '"')
     return readstring(in);
-  if (ch == '-' || isdigit(ch))
-    return readnumber(ch, in);
-  else if (isalpha(ch))
-    return readsymbol(ch, in);
-  die("Unexpected character: '%c'", ch);
+  else {
+    buffer *buf = allocbuffer();
+    readtoken(ch, in, buf);
+    ref_t result = parsetoken(bufferstring(buf));
+    freebuffer(buf);
+    return result;
+  }
 }
 
 ref_t readsexp(FILE *in) {
   int ch = skipspace(in);
-  return _readsexp(ch, in);
+  return readnext(ch, in);
 }
 
 ref_t readstream(FILE *in) {
