@@ -54,6 +54,7 @@ ref_t string(const char *str);
 
 /* Symbols */
 bool issymbol(ref_t obj);
+ref_t symbol(const char *str);
 
 /* Casts */
 int intvalue(ref_t obj);

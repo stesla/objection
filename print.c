@@ -27,6 +27,8 @@ void print(ref_t obj) {
     printf("%i", intvalue(obj));
   else if (isstring(obj))
     printf("\"%s\"", strvalue(obj));
+  else if (issymbol(obj))
+    printf("%s", strvalue(obj));
   else if (islist(obj)) {
     putchar('(');
     printlist(obj);

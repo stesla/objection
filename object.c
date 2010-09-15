@@ -23,10 +23,13 @@
  * 101 -   Function Pointer
  * 111 -   Other Pointer
  *
- * Widetags:
- * 000000001 - 0x01 - string (cannot be immediate)
+ * Other Immediates:
  * 000000010 - 0x02 - nil
  * 000000110 - 0x06 - true
+
+ * Other Widetags:
+ * 000000001 - 0x01 - string
+ * 000000011 - 0x03 - symbol
  */
 
 /*
@@ -96,8 +99,29 @@ static const char *string_to_str(ref_t obj) {
 /*
  * Symbols
  */
+#define SYMBOL_TAG 0x03
+
+struct symbol {
+  uint8_t tag;
+  char name[1];
+};
+
 bool issymbol(ref_t obj) {
-  return NO;
+  if ((obj & OTHER_POINTER_TAG) != OTHER_POINTER_TAG)
+    return NO;
+  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->tag == SYMBOL_TAG;
+}
+
+ref_t symbol(const char *str) {
+  struct symbol *ptr = safe_malloc(sizeof(struct string) + strlen(str));
+  ptr->tag = SYMBOL_TAG;
+  strcpy(ptr->name, str);
+  return ((ref_t) ptr) + OTHER_POINTER_TAG;
+}
+
+const char *symbol_to_str(ref_t obj) {
+  assert(issymbol(obj));
+  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->name;
 }
 
 /*
@@ -112,5 +136,7 @@ int intvalue(ref_t obj) {
 const char *strvalue(ref_t obj) {
   if (isstring(obj))
     return string_to_str(obj);
+  else if (issymbol)
+    return symbol_to_str(obj);
   abort();
 }

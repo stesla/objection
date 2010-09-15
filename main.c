@@ -14,5 +14,6 @@ int main(int argc, const char **argv) {
                     cons(fixnum(3), NIL))));
   println(cons(NIL, TRUE));
   println(string("foo"));
+  println(symbol("bar"));
   return 0;
 }
