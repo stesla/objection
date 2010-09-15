@@ -4,8 +4,11 @@
 #include "print.h"
 
 int main(int argc, const char **argv) {
-  ref_t program = readstream(stdin);
-  print(program);
-  puts("");
+  for (;;) {
+    printf("> ");
+    ref_t expr = readsexp(stdin);
+    print(expr);
+    puts("");
+  }
   return 0;
 }

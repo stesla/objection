@@ -58,7 +58,7 @@ static ref_t readsymbol(int ch, FILE *in) {
   return result;
 }
 
-static ref_t readsexp(int ch, FILE *in);
+static ref_t _readsexp(int ch, FILE *in);
 
 static ref_t readlist(FILE *in) {
   int ch = skipspace(in);
@@ -66,12 +66,12 @@ static ref_t readlist(FILE *in) {
     return NIL;
   else if (ch == EOF)
     die("End of file reached before end of list");
-  ref_t car = readsexp(ch, in);
+  ref_t car = _readsexp(ch, in);
   ref_t cdr = readlist(in);
   return cons(car, cdr);
 }
 
-static ref_t readsexp(int ch, FILE *in) {
+static ref_t _readsexp(int ch, FILE *in) {
   if (ch == '(')
     return readlist(in);
   if (ch == '"')
@@ -83,11 +83,16 @@ static ref_t readsexp(int ch, FILE *in) {
   die("Unexpected character: '%c'", ch);
 }
 
+ref_t readsexp(FILE *in) {
+  int ch = skipspace(in);
+  return _readsexp(ch, in);
+}
+
 ref_t readstream(FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF)
     return NIL;
-  ref_t car = readsexp(ch, in);
+  ref_t car = _readsexp(ch, in);
   ref_t cdr = readstream(in);
   return cons(car, cdr);
 }

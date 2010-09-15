@@ -8,6 +8,6 @@ void die(const char *format, ...) {
   va_start(args, format);
   vfprintf(stderr, format, args);
   va_end(args);
-  fputs("", stderr);
+  puts("");
   exit(1);
 }
