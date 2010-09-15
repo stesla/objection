@@ -60,15 +60,19 @@ static ref_t readsymbol(int ch, FILE *in) {
 
 static ref_t _readsexp(int ch, FILE *in);
 
-static ref_t readlist(FILE *in) {
+static ref_t readseq(bool islist, FILE *in) {
   int ch = skipspace(in);
-  if (ch == ')')
+  if (ch == EOF && islist)
+      die("End of file reached before end of list");
+  else if (ch == EOF || islist && ch == ')')
     return NIL;
-  else if (ch == EOF)
-    die("End of file reached before end of list");
   ref_t car = _readsexp(ch, in);
-  ref_t cdr = readlist(in);
+  ref_t cdr = readseq(islist, in);
   return cons(car, cdr);
+}
+
+static inline ref_t readlist(FILE *in) {
+  return readseq(YES, in);
 }
 
 static ref_t _readsexp(int ch, FILE *in) {
@@ -89,10 +93,5 @@ ref_t readsexp(FILE *in) {
 }
 
 ref_t readstream(FILE *in) {
-  int ch = skipspace(in);
-  if (ch == EOF)
-    return NIL;
-  ref_t car = _readsexp(ch, in);
-  ref_t cdr = readstream(in);
-  return cons(car, cdr);
+  return readseq(NO, in);
 }
