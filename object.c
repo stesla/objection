@@ -52,17 +52,17 @@ struct cons {
 ref_t cons(ref_t car, ref_t cdr) {
   struct cons *ptr = safe_malloc(sizeof(struct cons));
   ptr->car = car, ptr->cdr = cdr;
-  return ((ref_t) ptr) + LIST_MASK;
+  return ((ref_t) ptr) + LIST_POINTER_TAG;
 }
 
 ref_t car(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj - LIST_MASK))->car;
+  return ((struct cons *) (obj - LIST_POINTER_TAG))->car;
 }
 
 ref_t cdr(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj - LIST_MASK))->cdr;
+  return ((struct cons *) (obj - LIST_POINTER_TAG))->cdr;
 }
 
 /*
@@ -76,21 +76,21 @@ struct string {
 };
 
 bool isstring(ref_t obj) {
-  if ((obj & PTR_MASK) != PTR_MASK)
+  if ((obj & OTHER_POINTER_TAG) != OTHER_POINTER_TAG)
     return NO;
-  return ((struct string *) (obj - PTR_MASK))->tag == STRING_TAG;
+  return ((struct string *) (obj - OTHER_POINTER_TAG))->tag == STRING_TAG;
 }
 
 ref_t string(const char *str) {
   struct string *ptr = safe_malloc(sizeof(struct string) + strlen(str));
   ptr->tag = STRING_TAG;
   strcpy(ptr->bytes, str);
-  return ((ref_t) ptr) + PTR_MASK;
+  return ((ref_t) ptr) + OTHER_POINTER_TAG;
 }
 
 static const char *string_to_str(ref_t obj) {
   assert(isstring(obj));
-  return ((struct string *) (obj - PTR_MASK))->bytes;
+  return ((struct string *) (obj - OTHER_POINTER_TAG))->bytes;
 }
 
 /*
