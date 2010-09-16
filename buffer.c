@@ -3,7 +3,7 @@
 #include "alloc.h"
 #include "buffer.h"
 
-#define BUFFER_STEP 512
+#define BUFFER_STEP 128
 
 struct buffer {
   size_t pos, size;
@@ -30,11 +30,11 @@ int bufferlen(buffer *buf) {
   return buf->pos;
 }
 
-buffer *bufferappend(buffer *buf, char ch){
-  if(buf->pos == buf->size)
-    buf = growbuffer(buf);
-  buf->data[buf->pos++] = ch;
-  return buf;
+void bufferappend(buffer **buf, char ch){
+  buffer *b = *buf;
+  if(b->pos == b->size)
+    *buf = growbuffer(b);
+  b->data[b->pos++] = ch;
 }
 
 const char *bufferstring(buffer *buf) {

@@ -8,7 +8,7 @@ buffer *growbuffer(buffer *buf);
 void freebuffer(buffer *buf);
 
 int bufferlen(buffer *buf);
-buffer *bufferappend(buffer *buf, char ch);
+void bufferappend(buffer **buf, char ch);
 const char *bufferstring(buffer *buf);
 
 #endif

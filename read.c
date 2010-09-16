@@ -1,5 +1,6 @@
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "buffer.h"
 #include "object.h"
@@ -17,9 +18,10 @@ static ref_t readstring(FILE *in) {
   buffer *buf = allocbuffer();
   int ch = getc(in);
   while (ch != '"') {
-    bufferappend(buf, ch);
+    bufferappend(&buf, ch);
     ch = getc(in);
   }
+  bufferappend(&buf, 0);
   ref_t result = string(bufferstring(buf));
   freebuffer(buf);
   return result;
@@ -27,13 +29,14 @@ static ref_t readstring(FILE *in) {
 
 static void readtoken(int ch, FILE *in, buffer *buf) {
   do {
-    bufferappend(buf, ch);
+    bufferappend(&buf, ch);
     ch = getc(in);
     if (ch == ')') {
       ungetc(ch, in);
       break;
     }
   } while (!isspace(ch));
+  bufferappend(&buf, 0);
 }
 
 static ref_t parsetoken(const char *token) {
@@ -88,6 +91,8 @@ static ref_t readnext(int ch, FILE *in) {
 
 ref_t readsexp(FILE *in) {
   int ch = skipspace(in);
+  if (ch == EOF)
+    exit(0);
   return readnext(ch, in);
 }
 
