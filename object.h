@@ -36,7 +36,7 @@ ispointer (ref_t obj) {
 #define LIST_POINTER_TAG 3
 static inline bool
 islist (ref_t obj) {
-  return (obj & OTHER_POINTER_TAG) == LIST_POINTER_TAG;
+  return isnil(obj) || (obj & OTHER_POINTER_TAG) == LIST_POINTER_TAG;
 }
 ref_t cons(ref_t car, ref_t cdr);
 ref_t car(ref_t list);
@@ -48,11 +48,17 @@ ref_t string(const char *str);
 
 /* Symbols */
 bool issymbol(ref_t obj);
+bool isbound(ref_t obj);
 ref_t symbol(const char *str);
+ref_t getvalue(ref_t sym);
+void setvalue(ref_t sym, ref_t value);
 
 /* Casts */
 int intvalue(ref_t obj);
 const char *strvalue(ref_t obj);
+
+/* Misc */
+int length(ref_t obj);
 
 /* Predicates */
 static inline bool

@@ -60,12 +60,28 @@ ref_t cons(ref_t car, ref_t cdr) {
 
 ref_t car(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj - LIST_POINTER_TAG))->car;
+  if (isnil(obj))
+    return NIL;
+  else
+    return ((struct cons *) (obj - LIST_POINTER_TAG))->car;
 }
 
 ref_t cdr(ref_t obj) {
   assert(islist(obj));
-  return ((struct cons *) (obj - LIST_POINTER_TAG))->cdr;
+  if (isnil(obj))
+    return NIL;
+  else
+    return ((struct cons *) (obj - LIST_POINTER_TAG))->cdr;
+}
+
+static int list_length(ref_t obj) {
+  assert(islist(obj));
+  int i = 0;
+  while (!isnil(obj)) {
+    obj = cdr(obj);
+    i++;
+  }
+  return i;
 }
 
 /*
@@ -101,19 +117,41 @@ static const char *string_to_str(ref_t obj) {
  */
 #define SYMBOL_TAG 0x03
 
+#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_TAG))
+
 struct symbol {
   uint8_t tag;
+  bool bound;
+  ref_t value;
+  /* must be last */
   char name[1];
 };
 
 bool issymbol(ref_t obj) {
   if ((obj & OTHER_POINTER_TAG) != OTHER_POINTER_TAG)
     return NO;
-  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->tag == SYMBOL_TAG;
+  return SYMBOL(obj)->tag == SYMBOL_TAG;
 }
 
+bool isbound(ref_t obj) {
+  assert(issymbol(obj));
+  return SYMBOL(obj)->bound;
+}
+
+ref_t getvalue(ref_t obj) {
+  assert(issymbol(obj) && SYMBOL(obj)->bound);
+  return SYMBOL(obj)->value;
+}
+
+void setvalue(ref_t sym, ref_t value) {
+  assert(issymbol(sym));
+  SYMBOL(sym)->bound = YES;
+  SYMBOL(sym)->value = value;
+}
+
+
 ref_t symbol(const char *str) {
-  struct symbol *ptr = safe_malloc(sizeof(struct string) + strlen(str));
+  struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
   ptr->tag = SYMBOL_TAG;
   strcpy(ptr->name, str);
   return ((ref_t) ptr) + OTHER_POINTER_TAG;
@@ -139,4 +177,15 @@ const char *strvalue(ref_t obj) {
   else if (issymbol)
     return symbol_to_str(obj);
   abort();
+}
+
+/*
+ * Misc
+ */
+int length(ref_t obj) {
+  assert(islist(obj) || isstring(obj));
+  if (islist(obj))
+    return list_length(obj);
+  else
+    return strlen(strvalue(obj));
 }

@@ -5,6 +5,7 @@
 #include "buffer.h"
 #include "object.h"
 #include "read.h"
+#include "env.h"
 #include "error.h"
 
 static int skipspace(FILE *in) {
@@ -39,7 +40,7 @@ static void readtoken(int ch, FILE *in, buffer *buf) {
   bufferappend(&buf, 0);
 }
 
-static ref_t parsetoken(const char *token) {
+static ref_t parsetoken(env_t *env, const char *token) {
   if (!strcmp("nil", token))
     return NIL;
   if (!strcmp("true", token))
@@ -55,47 +56,47 @@ static ref_t parsetoken(const char *token) {
         error("Bignums not yet supported");
     }
   }
-  return symbol(token);
+  return intern(env, token);
 }
 
-static ref_t readnext(int ch, FILE *in);
+static ref_t readnext(env_t *env, int ch, FILE *in);
 
-static ref_t readseq(bool islist, FILE *in) {
+static ref_t readseq(env_t *env, bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
       error("End of file reached before end of list");
   else if (ch == EOF || islist && ch == ')')
     return NIL;
-  ref_t car = readnext(ch, in);
-  ref_t cdr = readseq(islist, in);
+  ref_t car = readnext(env, ch, in);
+  ref_t cdr = readseq(env, islist, in);
   return cons(car, cdr);
 }
 
-static inline ref_t readlist(FILE *in) {
-  return readseq(YES, in);
+static inline ref_t readlist(env_t *env, FILE *in) {
+  return readseq(env, YES, in);
 }
 
-static ref_t readnext(int ch, FILE *in) {
+static ref_t readnext(env_t *env, int ch, FILE *in) {
   if (ch == '(')
-    return readlist(in);
+    return readlist(env, in);
   if (ch == '"')
     return readstring(in);
   else {
     buffer *buf = allocbuffer();
     readtoken(ch, in, buf);
-    ref_t result = parsetoken(bufferstring(buf));
+    ref_t result = parsetoken(env, bufferstring(buf));
     freebuffer(buf);
     return result;
   }
 }
 
-ref_t readsexp(FILE *in) {
+ref_t readsexp(env_t *env, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF)
     exit(0);
-  return readnext(ch, in);
+  return readnext(env, ch, in);
 }
 
-ref_t readstream(FILE *in) {
-  return readseq(NO, in);
+ref_t readstream(env_t *env, FILE *in) {
+  return readseq(env, NO, in);
 }
