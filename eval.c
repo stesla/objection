@@ -24,9 +24,16 @@ static ref_t apply_eq(ref_t args) {
   return (arg1 == arg2) ? TRUE : NIL;
 }
 
+static apply_quote(ref_t args) {
+  check_arg_count(1, args);
+  return car(args);
+}
+
 ref_t apply(ref_t func, ref_t args) {
   const char *name = strvalue(func);
-  if (!strcmp("eq", name))
+  if (!strcmp("quote", name))
+    apply_quote(args);
+  else if (!strcmp("eq", name))
     apply_eq(args);
   else if (!strcmp("def", name))
     apply_def(args);
