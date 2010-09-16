@@ -7,7 +7,7 @@
 #include "print.h"
 
 static void compile() {
-  if (setjmp(loc) == 0) {
+  if (setjmp(error_loc) == 0) {
     print(readstream(stdin));
     puts("");
   } else {
@@ -18,7 +18,7 @@ static void compile() {
 static void repl() {
   for (;;) {
     printf("> ");
-    if (setjmp(loc) == 0)
+    if (setjmp(error_loc) == 0)
       print(eval(readsexp(stdin)));
     else
       printf("ERROR: %s", the_error);

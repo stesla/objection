@@ -3,7 +3,7 @@
 
 #include <setjmp.h>
 
-jmp_buf loc;
+jmp_buf error_loc;
 char the_error[512];
 
 void error(const char *format, ...);

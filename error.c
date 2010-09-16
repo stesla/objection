@@ -8,5 +8,5 @@ void error(const char *format, ...) {
   va_start(args, format);
   vsnprintf(the_error, sizeof(the_error), format, args);
   va_end(args);
-  longjmp(loc, 1);
+  longjmp(error_loc, 1);
 }
