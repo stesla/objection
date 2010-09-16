@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "error.h"
+#include "eval.h"
 #include "object.h"
 #include "read.h"
 #include "print.h"
@@ -18,7 +19,7 @@ static void repl() {
   for (;;) {
     printf("> ");
     if (setjmp(loc) == 0)
-      print(readsexp(stdin));
+      print(eval(readsexp(stdin)));
     else
       printf("ERROR: %s", the_error);
     puts("");
@@ -26,10 +27,9 @@ static void repl() {
 }
 
 int main(int argc, const char **argv) {
-  if (argc == 2 && !strcmp("-", argv[1])) {
+  if (argc == 2 && !strcmp("-", argv[1]))
     compile();
-  } else {
+  else
     repl();
-  }
   return 0;
 }

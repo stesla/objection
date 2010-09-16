@@ -25,12 +25,6 @@ isfixnum(ref_t obj) {
 }
 ref_t fixnum(int i);
 
-/* Integers */
-static inline bool
-isinteger(ref_t obj) {
-  return isfixnum(obj) /* || isbigint(obj); */;
-}
-
 /* Pointers */
 #define OTHER_POINTER_TAG 7
 static inline bool
@@ -60,4 +54,19 @@ ref_t symbol(const char *str);
 int intvalue(ref_t obj);
 const char *strvalue(ref_t obj);
 
+/* Predicates */
+static inline bool
+isinteger(ref_t obj) {
+  return isfixnum(obj) /* || isbignum(obj)*/;
+}
+
+static inline bool
+isatom(ref_t obj) {
+  return
+    isnil(obj) ||
+    istrue(obj) ||
+    isfixnum(obj) ||
+    issymbol(obj) ||
+    isstring(obj);
+}
 #endif
