@@ -5,7 +5,7 @@
 #include "buffer.h"
 #include "object.h"
 #include "read.h"
-#include "util.h"
+#include "error.h"
 
 static int skipspace(FILE *in) {
   int ch = getc(in);
@@ -52,7 +52,7 @@ static ref_t parsetoken(const char *token) {
         return fixnum(val);
       else
         /* TODO */
-        die("Bignums not yet supported");
+        error("Bignums not yet supported");
     }
   }
   return symbol(token);
@@ -63,7 +63,7 @@ static ref_t readnext(int ch, FILE *in);
 static ref_t readseq(bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
-      die("End of file reached before end of list");
+      error("End of file reached before end of list");
   else if (ch == EOF || islist && ch == ')')
     return NIL;
   ref_t car = readnext(ch, in);

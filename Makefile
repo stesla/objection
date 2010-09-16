@@ -1,6 +1,6 @@
 CC=gcc
 
-OBJS=main.o alloc.o object.o print.o read.o util.o buffer.o
+OBJS=main.o alloc.o object.o print.o read.o error.o buffer.o
 
 CFLAGS=-g
 
