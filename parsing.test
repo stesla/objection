@@ -1,0 +1,6 @@
+(def bar 'fail)
+'(42 "foo" bar 'baz (+ 1 -2 3))
+
+RESULT
+
+(42 "foo" bar (quote baz) (+ 1 -2 3))
