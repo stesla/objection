@@ -80,7 +80,7 @@ static ref_t parsetoken(env_t *env, const char *token) {
         return fixnum(val);
       else
         /* TODO */
-        error("Bignums not yet supported");
+        error("bignums not yet supported");
     }
   }
   if (isident(token))
@@ -93,7 +93,7 @@ static ref_t readnext(env_t *env, int ch, FILE *in);
 static ref_t readseq(env_t *env, bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
-      error("End of file reached before end of list");
+      error("end of file reached before end of list");
   else if (ch == EOF || islist && ch == ')')
     return NIL;
   ref_t car = readnext(env, ch, in);

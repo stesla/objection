@@ -38,12 +38,12 @@ ref_t apply(ref_t func, ref_t args) {
   else if (!strcmp("def", name))
     apply_def(args);
   else
-    error("unknown function '%s'", name);
+    error("unknown function: '%s'", name);
 }
 
 static ref_t eval_symbol(ref_t obj) {
   if (!isbound(obj))
-    error("unbound symbol '%s'", strvalue(obj));
+    error("unbound variable: '%s'", strvalue(obj));
   return getvalue(obj);
 }
 
