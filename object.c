@@ -153,6 +153,8 @@ void setvalue(ref_t sym, ref_t value) {
 ref_t symbol(const char *str) {
   struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
   ptr->tag = SYMBOL_TAG;
+  ptr->bound = NO;
+  ptr->value = NIL;
   strcpy(ptr->name, str);
   return ((ref_t) ptr) + OTHER_POINTER_TAG;
 }
