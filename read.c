@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <limits.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -40,12 +41,38 @@ static void readtoken(int ch, FILE *in, buffer *buf) {
   bufferappend(&buf, 0);
 }
 
+static bool isident(const char *token) {
+  static bool initialized = NO;
+  static bool map[CHAR_MAX];
+  size_t i, len = strlen(token);
+  if (!initialized) {
+    int c;
+    for (c = 0; c <= CHAR_MAX; c++)
+      map[c] = NO;
+    for (c = 'a'; c <= 'z'; c++)
+      map[c] = YES;
+    for (c = 'A'; c <= 'Z'; c++)
+      map[c] = YES;
+    for (c = '0'; c <= '9'; c++)
+      map[c] = YES;
+    char other[] = {'!', '&', '+', '?', '^', '_', '-', '<',
+                    '>', '$', '=', '.', '%', '*', '/', '~'};
+    for (i = 0; i < sizeof(other); i++)
+      map[other[i]] = YES;
+  }
+  for (i = 0; i < len; i++) {
+    if (!map[token[i]])
+      return NO;
+  }
+  return YES;
+}
+
 static ref_t parsetoken(env_t *env, const char *token) {
   if (!strcmp("nil", token))
     return NIL;
   if (!strcmp("true", token))
     return TRUE;
-  if (isdigit(token[0]) || token[0] == '-') {
+  if (token[0] == '-' || token[0] == '+' || isdigit(token[0])) {
     char *end = NULL;
     long int val = strtol(token, &end, 0);
     if (!*end) {
@@ -56,7 +83,9 @@ static ref_t parsetoken(env_t *env, const char *token) {
         error("Bignums not yet supported");
     }
   }
-  return intern(env, token);
+  if (isident(token))
+    return intern(env, token);
+  error("invalid token: '%s'", token);
 }
 
 static ref_t readnext(env_t *env, int ch, FILE *in);
