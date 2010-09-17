@@ -110,6 +110,8 @@ static ref_t readnext(env_t *env, int ch, FILE *in) {
     return readlist(env, in);
   if (ch == '"')
     return readstring(in);
+  if (ch == '\'')
+    return cons(intern(env, "quote"), cons(readnext(env, skipspace(in), in), NIL));
   else {
     buffer *buf = allocbuffer();
     readtoken(ch, in, buf);
