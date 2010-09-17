@@ -4,35 +4,27 @@
 #include "env.h"
 #include "object.h"
 
-struct symtable {
-  ref_t symbol;
-  struct symtable *next;
-};
-
 struct env {
-  struct symtable *symbols;
+  ref_t symbols;
 };
 
 env_t *make_env() {
   env_t *env = safe_malloc(sizeof(struct env));
   memset(env, 0, sizeof(struct env));
+  env->symbols = NIL;
 }
 
 static void add_symbol(env_t *env, ref_t symbol) {
-  struct symtable *ptr = safe_malloc(sizeof(struct env));
-  ptr->symbol = symbol;
-  ptr->next = env->symbols;
-  env->symbols = ptr;
+  env->symbols = cons(symbol, env->symbols);
 }
 
 static bool find_symbol(env_t *env, const char *name, ref_t *result) {
-  struct symtable *curr = env->symbols;
-  while (curr != NULL) {
-    if (!strcmp(name, strvalue(curr->symbol))) {
-      *result = curr->symbol;
+  ref_t symbols = env->symbols;
+  while (!isnil(symbols)) {
+    *result = car(symbols);
+    if (!strcmp(name, strvalue(*result)))
       return YES;
-    }
-    curr = curr->next;
+    symbols = cdr(symbols);
   }
   return NO;
 }
