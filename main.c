@@ -28,14 +28,9 @@ static void repl(env_t *env) {
 static void do_it(env_t *env, const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
-      ref_t program = readstream(env, input);
-      ref_t result;
-      do {
-        result = eval(car(program));
-        program = cdr(program);
-      } while (!isnil(program));
-      print(result);
-      puts("");
+    ref_t program = cons(symbol("do"), readstream(env, input));
+    print(eval(program));
+    puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);
     exit(1);

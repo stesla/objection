@@ -17,6 +17,15 @@ static ref_t apply_def(ref_t args) {
   return val;
 }
 
+static ref_t apply_do(ref_t args) {
+  ref_t result;
+  do {
+    result = eval(car(args));
+    args = cdr(args);
+  } while (!isnil(args));
+  return result;
+}
+
 static ref_t apply_eq(ref_t args) {
   check_arg_count(2, args);
   ref_t arg1 = eval(car(args));
@@ -32,11 +41,13 @@ static apply_quote(ref_t args) {
 ref_t apply(ref_t func, ref_t args) {
   const char *name = strvalue(func);
   if (!strcmp("quote", name))
-    apply_quote(args);
+    return apply_quote(args);
   else if (!strcmp("eq", name))
-    apply_eq(args);
+    return apply_eq(args);
   else if (!strcmp("def", name))
-    apply_def(args);
+    return apply_def(args);
+  else if (!strcmp("do", name))
+    return apply_do(args);
   else
     error("unknown function: '%s'", name);
 }
