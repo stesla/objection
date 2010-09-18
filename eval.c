@@ -33,7 +33,14 @@ static ref_t apply_eq(ref_t args) {
   return (arg1 == arg2) ? TRUE : NIL;
 }
 
-static apply_quote(ref_t args) {
+static ref_t apply_list(ref_t args) {
+  if (isnil(args))
+    return NIL;
+  else
+    return cons(eval(car(args)), apply_list(cdr(args)));
+}
+
+static ref_t apply_quote(ref_t args) {
   check_arg_count(1, args);
   return car(args);
 }
@@ -48,6 +55,8 @@ ref_t apply(ref_t func, ref_t args) {
     return apply_def(args);
   else if (!strcmp("do", name))
     return apply_do(args);
+  else if (!strcmp("list", name))
+    return apply_list(args);
   else
     error("unknown function: '%s'", name);
 }

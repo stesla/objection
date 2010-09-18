@@ -1,0 +1,8 @@
+(def foo 1)
+(def bar 2)
+(def baz 3)
+(list foo bar baz)
+
+RESULT
+
+(1 2 3)
