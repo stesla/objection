@@ -176,7 +176,7 @@ int intvalue(ref_t obj) {
 const char *strvalue(ref_t obj) {
   if (isstring(obj))
     return string_to_str(obj);
-  else if (issymbol)
+  else if (issymbol(obj))
     return symbol_to_str(obj);
   abort();
 }

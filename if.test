@@ -1,0 +1,14 @@
+(def foo true)
+(def bar nil)
+(def baz foo)
+(list
+  (if true 1 2)
+  (if nil  1 2)
+  (if nil 1)
+  (if foo 1 2)
+  (if bar 1 2)
+  (if (eq foo baz) 1 2))
+
+RESULT
+
+(1 2 nil 1 2 1)

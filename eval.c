@@ -3,14 +3,14 @@
 #include "eval.h"
 #include "object.h"
 
-static inline check_arg_count(size_t expected, ref_t args) {
-  size_t actual = length(args);
-  if (actual != expected)
-    error("wrong number of arguments: %i", actual);
+#define check_arg_count(condition, args) {\
+  size_t len = length(args); \
+  if (!(condition)) \
+    error("wrong number of arguments: %i", len); \
 }
 
 static ref_t apply_def(ref_t args) {
-  check_arg_count(2, args);
+  check_arg_count(len == 2, args);
   ref_t sym = car(args);
   ref_t val = eval(car(cdr(args)));
   setvalue(sym, val);
@@ -26,8 +26,16 @@ static ref_t apply_do(ref_t args) {
   return result;
 }
 
+static ref_t apply_if(ref_t args) {
+  check_arg_count(len >= 2 && len <= 3, args);
+  if (eval(car(args)) == NIL)
+    return eval(car(cdr(cdr(args))));
+  else
+    return eval(car(cdr(args)));
+}
+
 static ref_t apply_eq(ref_t args) {
-  check_arg_count(2, args);
+  check_arg_count(len == 2, args);
   ref_t arg1 = eval(car(args));
   ref_t arg2 = eval(car(cdr(args)));
   return (arg1 == arg2) ? TRUE : NIL;
@@ -41,7 +49,7 @@ static ref_t apply_list(ref_t args) {
 }
 
 static ref_t apply_quote(ref_t args) {
-  check_arg_count(1, args);
+  check_arg_count(len == 1, args);
   return car(args);
 }
 
@@ -57,6 +65,8 @@ ref_t apply(ref_t func, ref_t args) {
     return apply_do(args);
   else if (!strcmp("list", name))
     return apply_list(args);
+  else if (!strcmp("if", name))
+    return apply_if(args);
   else
     error("unknown function: '%s'", name);
 }
@@ -68,7 +78,9 @@ static ref_t eval_symbol(ref_t obj) {
 }
 
 ref_t eval(ref_t expr) {
-  if (islist(expr))
+  if (isnil(expr))
+    return NIL;
+  else if (islist(expr))
     return apply(car(expr), cdr(expr));
   else if (issymbol(expr))
     return eval_symbol(expr);
