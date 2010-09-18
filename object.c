@@ -191,3 +191,37 @@ int length(ref_t obj) {
   else
     return strlen(strvalue(obj));
 }
+
+/*
+ * Functions
+ */
+struct function {
+  fn_t impl;
+  size_t arity;
+  bool rest;
+};
+
+#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
+
+ref_t make_function(fn_t impl, size_t arity, bool rest) {
+  struct function *ptr = safe_malloc(sizeof(struct function));
+  ptr->impl = impl;
+  ptr->arity = arity;
+  ptr->rest = rest;
+  return ((ref_t) ptr) + FUNCTION_POINTER_TAG;
+}
+
+fn_t getfn(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->impl;
+}
+
+size_t getarity(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->arity;
+}
+
+bool hasrest(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->rest;
+}

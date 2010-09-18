@@ -1,6 +1,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <sys/types.h>
 #include "types.h"
 
 /* Constants */
@@ -75,4 +76,17 @@ isatom(ref_t obj) {
     issymbol(obj) ||
     isstring(obj);
 }
+
+/* Functions */
+#define FUNCTION_POINTER_TAG 0x05
+static inline bool
+isfunction(ref_t obj) {
+  return (obj & OTHER_POINTER_TAG) == FUNCTION_POINTER_TAG;
+}
+
+ref_t make_function(fn_t impl, size_t arity, bool rest);
+fn_t getfn(ref_t obj);
+size_t getarity(ref_t obj);
+bool hasrest(ref_t obj);
+
 #endif

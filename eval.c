@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include "error.h"
 #include "eval.h"
@@ -9,7 +10,7 @@
     error("wrong number of arguments: %i", len); \
 }
 
-static ref_t apply_def(ref_t args) {
+static ref_t eval_def(ref_t args) {
   check_arg_count(len == 2, args);
   ref_t sym = car(args);
   ref_t val = eval(car(cdr(args)));
@@ -17,7 +18,7 @@ static ref_t apply_def(ref_t args) {
   return val;
 }
 
-static ref_t apply_do(ref_t args) {
+static ref_t eval_do(ref_t args) {
   ref_t result;
   do {
     result = eval(car(args));
@@ -26,7 +27,7 @@ static ref_t apply_do(ref_t args) {
   return result;
 }
 
-static ref_t apply_if(ref_t args) {
+static ref_t eval_if(ref_t args) {
   check_arg_count(len >= 2 && len <= 3, args);
   if (eval(car(args)) == NIL)
     return eval(car(cdr(cdr(args))));
@@ -34,41 +35,31 @@ static ref_t apply_if(ref_t args) {
     return eval(car(cdr(args)));
 }
 
-static ref_t apply_eq(ref_t args) {
-  check_arg_count(len == 2, args);
-  ref_t arg1 = eval(car(args));
-  ref_t arg2 = eval(car(cdr(args)));
-  return (arg1 == arg2) ? TRUE : NIL;
-}
-
-static ref_t apply_list(ref_t args) {
-  if (isnil(args))
-    return NIL;
-  else
-    return cons(eval(car(args)), apply_list(cdr(args)));
-}
-
-static ref_t apply_quote(ref_t args) {
+static ref_t eval_quote(ref_t args) {
   check_arg_count(len == 1, args);
   return car(args);
 }
 
-ref_t apply(ref_t func, ref_t args) {
-  const char *name = strvalue(func);
+static inline bool is_special_form(ref_t sym) {
+  const char *name = strvalue(sym);
+  return  !strcmp("quote", name)
+    || !strcmp("def", name)
+    || !strcmp("do", name)
+    || !strcmp("if", name);
+}
+
+static ref_t eval_special_form(ref_t sym, ref_t args) {
+  const char *name = strvalue(sym);
   if (!strcmp("quote", name))
-    return apply_quote(args);
-  else if (!strcmp("eq", name))
-    return apply_eq(args);
+    return eval_quote(args);
   else if (!strcmp("def", name))
-    return apply_def(args);
+    return eval_def(args);
   else if (!strcmp("do", name))
-    return apply_do(args);
-  else if (!strcmp("list", name))
-    return apply_list(args);
+    return eval_do(args);
   else if (!strcmp("if", name))
-    return apply_if(args);
+    return eval_if(args);
   else
-    error("unknown function: '%s'", name);
+    abort();
 }
 
 static ref_t eval_symbol(ref_t obj) {
@@ -77,11 +68,34 @@ static ref_t eval_symbol(ref_t obj) {
   return getvalue(obj);
 }
 
+static inline ref_t eval_args(ref_t args) {
+  return isnil(args) ? NIL : cons(eval(car(args)), eval_args(cdr(args)));
+}
+
+static ref_t apply(ref_t func, ref_t args) {
+  if (hasrest(func)) {
+    check_arg_count(len >= getarity(func), args);
+  } else {
+    check_arg_count(len == getarity(func), args);
+  }
+  fn_t fn = getfn(func);
+  return fn(eval_args(args));
+}
+
+static ref_t eval_list(ref_t expr) {
+  ref_t thecar = car(expr), args = cdr(expr);
+  if (issymbol(thecar)) {
+    if (is_special_form(thecar))
+      return eval_special_form(thecar, args);
+    ref_t func = getvalue(thecar);
+    return apply(func, args);
+  }
+  error("boom");
+}
+
 ref_t eval(ref_t expr) {
-  if (isnil(expr))
-    return NIL;
-  else if (islist(expr))
-    return apply(car(expr), cdr(expr));
+  if (islist(expr) && !isnil(expr))
+    return eval_list(expr);
   else if (issymbol(expr))
     return eval_symbol(expr);
   else

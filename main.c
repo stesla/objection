@@ -5,6 +5,7 @@
 #include "env.h"
 #include "error.h"
 #include "eval.h"
+#include "functions.h"
 #include "object.h"
 #include "read.h"
 #include "print.h"
@@ -57,6 +58,8 @@ int main(int argc, char **argv) {
   }
 
   env_t *env = make_env();
+  init_builtin_functions(env);
+
   if (do_mode)
     do_it(env, input_file);
   else

@@ -34,6 +34,8 @@ void print(ref_t obj) {
     printlist(obj);
     putchar(')');
   }
+  else if (isfunction(obj))
+    printf("<fn arity:%i rest:%s>", (int) getarity(obj), hasrest(obj) ? "YES" : "NO");
   else
     printf("0x%x", obj);
 }
