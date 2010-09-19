@@ -87,7 +87,7 @@ static ref_t eval_list(ref_t expr) {
   if (issymbol(thecar)) {
     if (is_special_form(thecar))
       return eval_special_form(thecar, args);
-    ref_t func = getvalue(thecar);
+    ref_t func = eval_symbol(thecar);
     return apply(func, args);
   }
   error("boom");
