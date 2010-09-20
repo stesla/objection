@@ -33,7 +33,10 @@ bool hasrest(ref_t obj);
 
 /* Lists */
 ref_t car(ref_t list);
+ref_t cadr(ref_t list);
+ref_t caddr(ref_t list);
 ref_t cdr(ref_t list);
+ref_t cddr(ref_t list);
 
 /* Symbols */
 ref_t get_function(ref_t sym);

@@ -51,7 +51,7 @@
 struct cons {
   ref_t car, cdr;
 };
-#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG)
+#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG))
 
 struct function {
   fn_t impl;
@@ -178,18 +178,24 @@ ref_t symbol(const char *str) {
 
 ref_t car(ref_t obj) {
   assert(islist(obj));
-  if (isnil(obj))
-    return NIL;
-  else
-    return ((struct cons *) (obj - LIST_POINTER_TAG))->car;
+  return isnil(obj) ? NIL : CONS(obj)->car;
+}
+
+ref_t cadr(ref_t list) {
+  return car(cdr(list));
+}
+
+ref_t caddr(ref_t list) {
+  return car(cdr(cdr(list)));
 }
 
 ref_t cdr(ref_t obj) {
   assert(islist(obj));
-  if (isnil(obj))
-    return NIL;
-  else
-    return ((struct cons *) (obj - LIST_POINTER_TAG))->cdr;
+  return isnil(obj) ? NIL : CONS(obj)->cdr;
+}
+
+ref_t cddr(ref_t list) {
+  return cdr(cdr(list));
 }
 
 static int list_length(ref_t obj) {

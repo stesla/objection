@@ -44,9 +44,9 @@ static ref_t fn_mul(ref_t args) {
 
 static ref_t fn_div(ref_t args) {
   ref_t thecar = check_integer(car(args));
-  ref_t thecadr = check_integer(car(cdr(args)));
+  ref_t thecadr = check_integer(cadr(args));
   int result = intvalue(thecar) / intvalue(thecadr);
-  args = cdr(cdr(args));
+  args = cddr(args);
   while (!isnil(args)) {
     thecar = check_integer(car(args));
     result /= intvalue(thecar);
@@ -56,7 +56,7 @@ static ref_t fn_div(ref_t args) {
 }
 
 static ref_t fn_eq(ref_t args) {
-  return (car(args) == car(cdr(args))) ? TRUE : NIL;
+  return (car(args) == cadr(args)) ? TRUE : NIL;
 }
 
 static ref_t fn_list(ref_t args) {

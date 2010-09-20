@@ -38,9 +38,9 @@ static ref_t eval_do(ref_t args) {
 static ref_t eval_if(ref_t args) {
   check_arity_range(args, 2, 3);
   if (eval(car(args)) == NIL)
-    return eval(car(cdr(cdr(args))));
+    return eval(caddr(args));
   else
-    return eval(car(cdr(args)));
+    return eval(cadr(args));
 }
 
 static ref_t eval_quote(ref_t args) {
