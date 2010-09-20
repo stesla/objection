@@ -75,13 +75,8 @@ static ref_t parsetoken(env_t *env, const char *token) {
   if (token[0] == '-' || token[0] == '+' || isdigit(token[0])) {
     char *end = NULL;
     long int val = strtol(token, &end, 0);
-    if (!*end) {
-      if (FIXNUM_MIN <= val && val <= FIXNUM_MAX)
-        return fixnum(val);
-      else
-        /* TODO */
-        error("bignums not yet supported");
-    }
+    if (!*end)
+      return integer(val);
   }
   if (isident(token))
     return intern(env, token);

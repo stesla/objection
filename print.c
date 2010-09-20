@@ -9,7 +9,7 @@ static void printlist(ref_t obj) {
   print(thecar);
   if (isnil(thecdr))
     ;
-  else if (islist(thecdr)) {
+  else if (iscons(thecdr)) {
     putchar(' ');
     printlist(thecdr);
   } else {
@@ -29,7 +29,7 @@ void print(ref_t obj) {
     printf("\"%s\"", strvalue(obj));
   else if (issymbol(obj))
     printf("%s", strvalue(obj));
-  else if (islist(obj)) {
+  else if (iscons(obj)) {
     putchar('(');
     printlist(obj);
     putchar(')');

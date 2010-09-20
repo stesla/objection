@@ -39,7 +39,7 @@ static ref_t fn_mul(ref_t args) {
     result *= intvalue(thecar);
     args = cdr(args);
   }
-  return fixnum(result);
+  return integer(result);
 }
 
 static ref_t fn_div(ref_t args) {
@@ -52,7 +52,7 @@ static ref_t fn_div(ref_t args) {
     result /= intvalue(thecar);
     args = cdr(args);
   }
-  return fixnum(result);
+  return integer(result);
 }
 
 static ref_t fn_eq(ref_t args) {
@@ -64,7 +64,7 @@ static ref_t fn_list(ref_t args) {
 }
 
 static inline make_builtin(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
-  set_function(intern(env, name), make_function(impl, arity, rest));
+  set_function(intern(env, name), function(impl, arity, rest));
 }
 
 void init_builtin_functions(env_t *env) {

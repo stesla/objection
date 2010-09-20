@@ -97,7 +97,7 @@ static ref_t eval_list(ref_t expr) {
 }
 
 ref_t eval(ref_t expr) {
-  if (islist(expr) && !isnil(expr))
+  if (iscons(expr))
     return eval_list(expr);
   else if (issymbol(expr))
     return eval_symbol(expr);

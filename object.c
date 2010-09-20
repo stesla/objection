@@ -27,37 +27,154 @@
  * Other Immediates:
  * 000000010 - 0x02 - nil
  * 000000110 - 0x06 - true
-
+ *
  * Other Widetags:
  * 000000001 - 0x01 - string
  * 000000011 - 0x03 - symbol
  */
 
-/*
- * Fixnums
- */
-ref_t fixnum(int i) {
-  assert(FIXNUM_MIN <= i && i <= FIXNUM_MAX);
-  return i << 2;
-}
 
-static int fixnum_to_int(ref_t obj) {
-  assert(isfixnum(obj));
-  return ((int32_t) obj) >> 2;
-}
+/* Lowtags */
+#define LIST_POINTER_TAG 3
+#define FUNCTION_POINTER_TAG 5
+#define OTHER_POINTER_TAG 7
+#define POINTER_MASK 7
 
-/*
- * Lists
- */
+/* Object Tags */
+#define STRING_TAG 1
+#define SYMBOL_TAG 3
+
+/**
+ ** Types
+ **/
+
 struct cons {
   ref_t car, cdr;
 };
+#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG)
+
+struct function {
+  fn_t impl;
+  size_t arity;
+  bool rest;
+};
+#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
+
+struct string {
+  uint8_t tag;
+  /* must be last */
+  char bytes[1];
+};
+#define STRING(obj) ((struct string *) ((obj) - OTHER_POINTER_TAG))
+
+struct symbol {
+  uint8_t tag;
+  bool fbound;
+  ref_t fvalue;
+  /* must be last */
+  char name[1];
+};
+#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_TAG))
+
+
+/**
+ ** Type Checks
+ **/
+
+bool iscons(ref_t obj) {
+  return (obj & POINTER_MASK) == LIST_POINTER_TAG;
+}
+
+bool isfixnum(ref_t obj) {
+  return !(obj & 3);
+}
+
+bool isfunction(ref_t obj) {
+  return (obj & POINTER_MASK) == FUNCTION_POINTER_TAG;
+}
+
+bool isinteger(ref_t obj) {
+  return isfixnum(obj) /* || isbignum(obj)*/;
+}
+
+bool isnil(ref_t obj) {
+  return obj == NIL;
+}
+
+bool islist(ref_t obj) {
+  return isnil(obj) || iscons(obj);
+}
+
+bool ispointer(ref_t obj) {
+  return obj & 1;
+}
+
+bool isstring(ref_t obj) {
+  if ((obj & POINTER_MASK) != OTHER_POINTER_TAG)
+    return NO;
+  return STRING(obj)->tag == STRING_TAG;
+}
+
+bool issymbol(ref_t obj) {
+  if ((obj & POINTER_MASK) != OTHER_POINTER_TAG)
+    return NO;
+  return SYMBOL(obj)->tag == SYMBOL_TAG;
+}
+
+bool istrue(ref_t obj) {
+  return obj == TRUE;
+}
+
+/**
+ ** Constructors
+ **/
+
+inline ref_t make_ref(void *ptr, uint8_t lowtag) {
+  return ((ref_t) ptr) + lowtag;
+}
 
 ref_t cons(ref_t car, ref_t cdr) {
   struct cons *ptr = safe_malloc(sizeof(struct cons));
   ptr->car = car, ptr->cdr = cdr;
-  return ((ref_t) ptr) + LIST_POINTER_TAG;
+  return make_ref(ptr, LIST_POINTER_TAG);
 }
+
+#define FIXNUM_MAX  536870911
+#define FIXNUM_MIN -536870912
+
+ref_t integer(int i) {
+  if (FIXNUM_MIN <= i && i <= FIXNUM_MAX)
+    return i << 2;
+  error("bignums are not yet supported");
+}
+
+ref_t function(fn_t impl, size_t arity, bool rest) {
+  struct function *ptr = safe_malloc(sizeof(struct function));
+  ptr->impl = impl;
+  ptr->arity = arity;
+  ptr->rest = rest;
+  return ((ref_t) ptr) + FUNCTION_POINTER_TAG;
+}
+
+ref_t string(const char *str) {
+  struct string *ptr = safe_malloc(sizeof(struct string) + strlen(str));
+  ptr->tag = STRING_TAG;
+  strcpy(ptr->bytes, str);
+  return make_ref(ptr, OTHER_POINTER_TAG);
+}
+
+ref_t symbol(const char *str) {
+  struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
+  ptr->tag = SYMBOL_TAG;
+  ptr->fbound = NO;
+  ptr->fvalue = NIL;
+  strcpy(ptr->name, str);
+  return make_ref(ptr, OTHER_POINTER_TAG);
+}
+
+/**
+ ** Lists
+ **/
 
 ref_t car(ref_t obj) {
   assert(islist(obj));
@@ -85,129 +202,9 @@ static int list_length(ref_t obj) {
   return i;
 }
 
-/*
- * Strings
- */
-#define STRING_TAG 0x01
-
-struct string {
-  uint8_t tag;
-  char bytes[1];
-};
-
-bool isstring(ref_t obj) {
-  if ((obj & OTHER_POINTER_TAG) != OTHER_POINTER_TAG)
-    return NO;
-  return ((struct string *) (obj - OTHER_POINTER_TAG))->tag == STRING_TAG;
-}
-
-ref_t string(const char *str) {
-  struct string *ptr = safe_malloc(sizeof(struct string) + strlen(str));
-  ptr->tag = STRING_TAG;
-  strcpy(ptr->bytes, str);
-  return ((ref_t) ptr) + OTHER_POINTER_TAG;
-}
-
-static const char *string_to_str(ref_t obj) {
-  assert(isstring(obj));
-  return ((struct string *) (obj - OTHER_POINTER_TAG))->bytes;
-}
-
-/*
- * Symbols
- */
-#define SYMBOL_TAG 0x03
-
-#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_TAG))
-
-struct symbol {
-  uint8_t tag;
-  bool fbound;
-  ref_t fvalue;
-  /* must be last */
-  char name[1];
-};
-
-bool issymbol(ref_t obj) {
-  if ((obj & OTHER_POINTER_TAG) != OTHER_POINTER_TAG)
-    return NO;
-  return SYMBOL(obj)->tag == SYMBOL_TAG;
-}
-
-ref_t get_function(ref_t symbol) {
-  assert(issymbol(symbol));
-  if (!(SYMBOL(symbol)->fbound))
-    error("void function: '%s'", SYMBOL(symbol)->name);
-  return SYMBOL(symbol)->fvalue;
-}
-
-void set_function(ref_t symbol, ref_t value) {
-  assert(issymbol(symbol));
-  SYMBOL(symbol)->fbound = !isnil(value);
-  SYMBOL(symbol)->fvalue = value;
-}
-
-
-ref_t symbol(const char *str) {
-  struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
-  ptr->tag = SYMBOL_TAG;
-  ptr->fbound = NO;
-  ptr->fvalue = NIL;
-  strcpy(ptr->name, str);
-  return ((ref_t) ptr) + OTHER_POINTER_TAG;
-}
-
-const char *symbol_to_str(ref_t obj) {
-  assert(issymbol(obj));
-  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->name;
-}
-
-/*
- * Casts
- */
-int intvalue(ref_t obj) {
-  if (isfixnum(obj))
-      return fixnum_to_int(obj);
-  abort();
-}
-
-const char *strvalue(ref_t obj) {
-  if (isstring(obj))
-    return string_to_str(obj);
-  else if (issymbol(obj))
-    return symbol_to_str(obj);
-  abort();
-}
-
-/*
- * Misc
- */
-int length(ref_t obj) {
-  assert(islist(obj) || isstring(obj));
-  if (islist(obj))
-    return list_length(obj);
-  else
-    return strlen(strvalue(obj));
-}
-
-/*
- * Functions
- */
-struct function {
-  fn_t impl;
-  size_t arity;
-  bool rest;
-};
-
-#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
-
-ref_t make_function(fn_t impl, size_t arity, bool rest) {
-  struct function *ptr = safe_malloc(sizeof(struct function));
-  ptr->impl = impl;
-  ptr->arity = arity;
-  ptr->rest = rest;
-  return ((ref_t) ptr) + FUNCTION_POINTER_TAG;
-}
+/**
+ ** Functions
+ **/
 
 fn_t getfn(ref_t obj) {
   assert(isfunction(obj));
@@ -222,4 +219,64 @@ size_t getarity(ref_t obj) {
 bool hasrest(ref_t obj) {
   assert(isfunction(obj));
   return FN(obj)->rest;
+}
+
+
+/**
+ ** Symbols
+ **/
+
+ref_t get_function(ref_t symbol) {
+  assert(issymbol(symbol));
+  if (!(SYMBOL(symbol)->fbound))
+    error("void function: '%s'", SYMBOL(symbol)->name);
+  return SYMBOL(symbol)->fvalue;
+}
+
+void set_function(ref_t symbol, ref_t value) {
+  assert(issymbol(symbol));
+  SYMBOL(symbol)->fbound = !isnil(value);
+  SYMBOL(symbol)->fvalue = value;
+}
+
+/**
+ ** Misc
+ **/
+
+static int fixnum_to_int(ref_t obj) {
+  assert(isfixnum(obj));
+  return ((int32_t) obj) >> 2;
+}
+
+int intvalue(ref_t obj) {
+  assert(isinteger(obj));
+  if (isfixnum(obj))
+    return fixnum_to_int(obj);
+  abort();
+}
+
+int length(ref_t obj) {
+  assert(islist(obj) || isstring(obj));
+  if (islist(obj))
+    return list_length(obj);
+  else
+    return strlen(strvalue(obj));
+}
+
+static const char *string_to_str(ref_t obj) {
+  assert(isstring(obj));
+  return ((struct string *) (obj - OTHER_POINTER_TAG))->bytes;
+}
+
+static const char *symbol_to_str(ref_t obj) {
+  assert(issymbol(obj));
+  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->name;
+}
+
+const char *strvalue(ref_t obj) {
+  if (isstring(obj))
+    return string_to_str(obj);
+  else if (issymbol(obj))
+    return symbol_to_str(obj);
+  abort();
 }
