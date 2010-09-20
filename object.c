@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "alloc.h"
+#include "error.h"
 #include "object.h"
 
 #pragma pack(8)
@@ -121,8 +122,8 @@ static const char *string_to_str(ref_t obj) {
 
 struct symbol {
   uint8_t tag;
-  bool bound;
-  ref_t value;
+  bool fbound;
+  ref_t fvalue;
   /* must be last */
   char name[1];
 };
@@ -133,28 +134,25 @@ bool issymbol(ref_t obj) {
   return SYMBOL(obj)->tag == SYMBOL_TAG;
 }
 
-bool isbound(ref_t obj) {
-  assert(issymbol(obj));
-  return SYMBOL(obj)->bound;
+ref_t get_function(ref_t symbol) {
+  assert(issymbol(symbol));
+  if (!(SYMBOL(symbol)->fbound))
+    error("void function: '%s'", SYMBOL(symbol)->name);
+  return SYMBOL(symbol)->fvalue;
 }
 
-ref_t getvalue(ref_t obj) {
-  assert(issymbol(obj) && SYMBOL(obj)->bound);
-  return SYMBOL(obj)->value;
-}
-
-void setvalue(ref_t sym, ref_t value) {
-  assert(issymbol(sym));
-  SYMBOL(sym)->bound = YES;
-  SYMBOL(sym)->value = value;
+void set_function(ref_t symbol, ref_t value) {
+  assert(issymbol(symbol));
+  SYMBOL(symbol)->fbound = !isnil(value);
+  SYMBOL(symbol)->fvalue = value;
 }
 
 
 ref_t symbol(const char *str) {
   struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
   ptr->tag = SYMBOL_TAG;
-  ptr->bound = NO;
-  ptr->value = NIL;
+  ptr->fbound = NO;
+  ptr->fvalue = NIL;
   strcpy(ptr->name, str);
   return ((ref_t) ptr) + OTHER_POINTER_TAG;
 }

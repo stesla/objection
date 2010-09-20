@@ -52,9 +52,8 @@ static ref_t eval_special_form(ref_t sym, ref_t args) {
 }
 
 static ref_t eval_symbol(ref_t obj) {
-  if (!isbound(obj))
-    error("unbound variable: '%s'", strvalue(obj));
-  return getvalue(obj);
+  error("void variable: '%s'", strvalue(obj));
+  return NIL;
 }
 
 static inline ref_t eval_args(ref_t args) {
@@ -76,7 +75,7 @@ static ref_t eval_list(ref_t expr) {
   if (issymbol(thecar)) {
     if (is_special_form(thecar))
       return eval_special_form(thecar, args);
-    ref_t func = eval_symbol(thecar);
+    ref_t func = get_function(thecar);
     return apply(func, args);
   }
   error("boom");

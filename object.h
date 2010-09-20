@@ -49,10 +49,9 @@ ref_t string(const char *str);
 
 /* Symbols */
 bool issymbol(ref_t obj);
-bool isbound(ref_t obj);
 ref_t symbol(const char *str);
-ref_t getvalue(ref_t sym);
-void setvalue(ref_t sym, ref_t value);
+ref_t get_function(ref_t sym);
+void set_function(ref_t sym, ref_t func);
 
 /* Casts */
 int intvalue(ref_t obj);
