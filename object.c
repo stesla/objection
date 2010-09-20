@@ -146,6 +146,7 @@ ref_t integer(int i) {
   if (FIXNUM_MIN <= i && i <= FIXNUM_MAX)
     return i << 2;
   error("bignums are not yet supported");
+  return NIL;
 }
 
 ref_t function(fn_t impl, size_t arity, bool rest) {

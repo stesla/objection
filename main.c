@@ -10,7 +10,7 @@
 #include "read.h"
 #include "print.h"
 
-static usage() {
+static void usage() {
   /* TODO */
   exit(1);
 }

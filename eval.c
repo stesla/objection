@@ -94,6 +94,7 @@ static ref_t eval_list(ref_t expr) {
     return apply(func, args);
   }
   error("boom");
+  return NIL;
 }
 
 ref_t eval(ref_t expr) {

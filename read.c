@@ -55,13 +55,13 @@ static bool isident(const char *token) {
       map[c] = YES;
     for (c = '0'; c <= '9'; c++)
       map[c] = YES;
-    char other[] = {'!', '&', '+', '?', '^', '_', '-', '<',
-                    '>', '$', '=', '.', '%', '*', '/', '~'};
-    for (i = 0; i < sizeof(other); i++)
-      map[other[i]] = YES;
+    map['!'] = map['&'] = map['+'] = map['?'] =
+      map['^'] = map['_'] = map['-'] = map['<'] =
+      map['>'] = map['$'] = map['='] = map['.'] =
+      map['%'] = map['*'] = map['/'] = map['~'] = YES;
   }
   for (i = 0; i < len; i++) {
-    if (!map[token[i]])
+    if (!map[(int) token[i]])
       return NO;
   }
   return YES;
@@ -81,6 +81,7 @@ static ref_t parsetoken(env_t *env, const char *token) {
   if (isident(token))
     return intern(env, token);
   error("invalid token: '%s'", token);
+  return NIL;
 }
 
 static ref_t readnext(env_t *env, int ch, FILE *in);
@@ -89,7 +90,7 @@ static ref_t readseq(env_t *env, bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
       error("end of file reached before end of list");
-  else if (ch == EOF || islist && ch == ')')
+  else if (ch == EOF || (islist && ch == ')'))
     return NIL;
   ref_t car = readnext(env, ch, in);
   ref_t cdr = readseq(env, islist, in);

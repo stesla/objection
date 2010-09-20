@@ -12,6 +12,7 @@ env_t *make_env() {
   env_t *env = safe_malloc(sizeof(struct env));
   memset(env, 0, sizeof(struct env));
   env->symbols = NIL;
+  return env;
 }
 
 static void add_symbol(env_t *env, ref_t symbol) {

@@ -1,3 +1,4 @@
+#include "error.h"
 #include "functions.h"
 #include "object.h"
 
