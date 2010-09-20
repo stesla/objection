@@ -173,6 +173,50 @@ ref_t symbol(const char *str) {
 }
 
 /**
+ ** Integers
+ **/
+
+static int fixnum_to_int(ref_t obj) {
+  assert(isfixnum(obj));
+  return ((int32_t) obj) >> 2;
+}
+
+int intvalue(ref_t obj) {
+  assert(isinteger(obj));
+  if (isfixnum(obj))
+    return fixnum_to_int(obj);
+  abort();
+}
+
+ref_t integer_add(ref_t x, ref_t y) {
+  assert(isinteger(x) && isinteger(y));
+  if (isfixnum(x) && isfixnum(y))
+    return x + y;
+  abort();
+}
+
+ref_t integer_sub(ref_t x, ref_t y) {
+  assert(isinteger(x) && isinteger(y));
+  if (isfixnum(x) && isfixnum(y))
+    return x - y;
+  abort();
+}
+
+ref_t integer_mul(ref_t x, ref_t y) {
+  assert(isinteger(x) && isinteger(y));
+  if (isfixnum(x) && isfixnum(y))
+    return integer(fixnum_to_int(x) * fixnum_to_int(y));
+  abort();
+}
+
+ref_t integer_div(ref_t x, ref_t y) {
+  assert(isinteger(x) && isinteger(y));
+  if (isfixnum(x) && isfixnum(y))
+    return integer(fixnum_to_int(x) / fixnum_to_int(y));
+  abort();
+}
+
+/**
  ** Lists
  **/
 
@@ -248,18 +292,6 @@ void set_function(ref_t symbol, ref_t value) {
 /**
  ** Misc
  **/
-
-static int fixnum_to_int(ref_t obj) {
-  assert(isfixnum(obj));
-  return ((int32_t) obj) >> 2;
-}
-
-int intvalue(ref_t obj) {
-  assert(isinteger(obj));
-  if (isfixnum(obj))
-    return fixnum_to_int(obj);
-  abort();
-}
 
 int length(ref_t obj) {
   assert(islist(obj) || isstring(obj));

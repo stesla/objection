@@ -8,51 +8,38 @@ static ref_t check_integer(ref_t obj) {
   return obj;
 }
 
-static ref_t fn_add(ref_t args) {
-  ref_t thecar, result = 0;
+static ref_t apply_integer_op(ref_t (*op)(ref_t, ref_t), ref_t acc, ref_t args) {
   while (!isnil(args)) {
-    thecar = check_integer(car(args));
-    result += thecar;
+    ref_t thecar = check_integer(car(args));
+    acc = op(acc, thecar);
     args = cdr(args);
   }
-  return result;
+  return acc;
+}
+
+static ref_t fn_add(ref_t args) {
+  return apply_integer_op(integer_add, integer(0), args);
 }
 
 static ref_t fn_sub(ref_t args) {
-  ref_t thecar, result = car(args);
-  if (isnil(result))
+  ref_t thecar = car(args), thecdr = cdr(args);
+  if (isnil(thecar))
     return 0;
-  args = cdr(args);
-  while (!isnil(args)) {
-    thecar = check_integer(car(args));
-    result -= thecar;
-    args = cdr(args);
-  }
-  return result;
+  else if (isnil(thecdr))
+    return integer_sub(0, check_integer(thecar));
+  else
+    return apply_integer_op(integer_sub, check_integer(thecar), thecdr);
 }
 
 static ref_t fn_mul(ref_t args) {
-  ref_t thecar;
-  int result = 1;
-  while (!isnil(args)) {
-    thecar = check_integer(car(args));
-    result *= intvalue(thecar);
-    args = cdr(args);
-  }
-  return integer(result);
+  return apply_integer_op(integer_mul, integer(1), args);
 }
 
 static ref_t fn_div(ref_t args) {
   ref_t thecar = check_integer(car(args));
   ref_t thecadr = check_integer(cadr(args));
-  int result = intvalue(thecar) / intvalue(thecadr);
-  args = cddr(args);
-  while (!isnil(args)) {
-    thecar = check_integer(car(args));
-    result /= intvalue(thecar);
-    args = cdr(args);
-  }
-  return integer(result);
+  int result = integer_div(thecar, thecadr);
+  return apply_integer_op(integer_div, result, cddr(args));
 }
 
 static ref_t fn_eq(ref_t args) {
