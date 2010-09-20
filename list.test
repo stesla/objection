@@ -1,8 +1,5 @@
-(def foo 1)
-(def bar 2)
-(def baz 3)
-(list foo bar baz)
+(list 1 'foo (+ 1 2))
 
 RESULT
 
-(1 2 3)
+(1 foo 3)

@@ -1,6 +1,4 @@
-(do
-  (def foo 42)
-  foo)
+(do 1 2 (* 6 7))
 
 RESULT
 

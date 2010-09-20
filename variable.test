@@ -1,6 +1,0 @@
-(def foo 42)
-foo
-
-RESULT
-
-42

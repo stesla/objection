@@ -10,14 +10,6 @@
     error("wrong number of arguments: %i", len); \
 }
 
-static ref_t eval_def(ref_t args) {
-  check_arg_count(len == 2, args);
-  ref_t sym = car(args);
-  ref_t val = eval(car(cdr(args)));
-  setvalue(sym, val);
-  return val;
-}
-
 static ref_t eval_do(ref_t args) {
   ref_t result;
   do {
@@ -43,7 +35,6 @@ static ref_t eval_quote(ref_t args) {
 static inline bool is_special_form(ref_t sym) {
   const char *name = strvalue(sym);
   return  !strcmp("quote", name)
-    || !strcmp("def", name)
     || !strcmp("do", name)
     || !strcmp("if", name);
 }
@@ -52,8 +43,6 @@ static ref_t eval_special_form(ref_t sym, ref_t args) {
   const char *name = strvalue(sym);
   if (!strcmp("quote", name))
     return eval_quote(args);
-  else if (!strcmp("def", name))
-    return eval_def(args);
   else if (!strcmp("do", name))
     return eval_do(args);
   else if (!strcmp("if", name))
