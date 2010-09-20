@@ -4,10 +4,26 @@
 #include "eval.h"
 #include "object.h"
 
-#define check_arg_count(condition, args) {\
-  size_t len = length(args); \
-  if (!(condition)) \
-    error("wrong number of arguments: %i", len); \
+inline static void argument_error(size_t count) {
+  error("wrong number of arguments: %i", count);
+}
+
+inline static void check_arity_exact(ref_t args, size_t expected) {
+  size_t actual = length(args);
+  if (actual != expected)
+    argument_error(actual);
+}
+
+inline static void check_arity_min(ref_t args, size_t min) {
+  size_t actual = length(args);
+  if (actual < min)
+    argument_error(actual);
+}
+
+inline static void check_arity_range(ref_t args, size_t min, size_t max) {
+  size_t actual = length(args);
+  if (actual < min || max < actual)
+    argument_error(actual);
 }
 
 static ref_t eval_do(ref_t args) {
@@ -20,7 +36,7 @@ static ref_t eval_do(ref_t args) {
 }
 
 static ref_t eval_if(ref_t args) {
-  check_arg_count(len >= 2 && len <= 3, args);
+  check_arity_range(args, 2, 3);
   if (eval(car(args)) == NIL)
     return eval(car(cdr(cdr(args))));
   else
@@ -28,7 +44,7 @@ static ref_t eval_if(ref_t args) {
 }
 
 static ref_t eval_quote(ref_t args) {
-  check_arg_count(len == 1, args);
+  check_arity_exact(args, 1);
   return car(args);
 }
 
@@ -61,11 +77,10 @@ static inline ref_t eval_args(ref_t args) {
 }
 
 static ref_t apply(ref_t func, ref_t args) {
-  if (hasrest(func)) {
-    check_arg_count(len >= getarity(func), args);
-  } else {
-    check_arg_count(len == getarity(func), args);
-  }
+  if (hasrest(func))
+    check_arity_min(args, getarity(func));
+  else
+    check_arity_exact(args, getarity(func));
   fn_t fn = getfn(func);
   return fn(eval_args(args));
 }
