@@ -1,0 +1,10 @@
+(list
+  (+ 1 1) (- 6 2) (* 2 3) (/ 32 4)
+  (eq 'foo 'bar) (eq 'baz 'baz)
+  (do
+    (fset 'foo (fn (x y) (+ x (* x y))))
+    (foo 6 7)))
+
+RESULT
+
+(2 4 6 8 nil true 48)

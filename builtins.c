@@ -1,5 +1,6 @@
+#include "env.h"
 #include "error.h"
-#include "functions.h"
+#include "builtins.h"
 #include "object.h"
 
 /* TODO: would be good to have a repr type function */
@@ -60,7 +61,7 @@ static inline void make_builtin(env_t *env, const char *name, fn_t impl, size_t 
   set_function(intern(env, name), function(impl, NIL, arity, rest));
 }
 
-void init_builtin_functions(env_t *env) {
+void init_builtins(env_t *env) {
   make_builtin(env, "+", fn_add, 2, NO);
   make_builtin(env, "-", fn_sub, 2, NO);
   make_builtin(env, "*", fn_mul, 2, NO);
