@@ -1,0 +1,6 @@
+(fset 'multiply (fn (x y) (* x y)))
+(multiply 6 7)
+
+RESULT
+
+42
