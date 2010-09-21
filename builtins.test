@@ -1,10 +1,11 @@
 (list
   (+ 1 1) (- 6 2) (* 2 3) (/ 32 4)
   (eq 'foo 'bar) (eq 'baz 'baz)
+  (cons 1 2) (cons 1 '(2 3)) (car (cons 1 2)) (cdr (cons 1 2))
   (do
     (fset 'foo (fn (x y) (+ x (* x y))))
     (foo 6 7)))
 
 RESULT
 
-(2 4 6 8 nil true 48)
+(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48)
