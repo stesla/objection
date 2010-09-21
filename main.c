@@ -19,7 +19,7 @@ static void repl(env_t *env) {
   for (;;) {
     printf("> ");
     if (setjmp(error_loc) == 0)
-      print(eval(readsexp(env, stdin)));
+      print(eval(NIL, env, readsexp(env, stdin)));
     else
       printf("ERROR: %s", the_error);
     puts("");
@@ -29,8 +29,8 @@ static void repl(env_t *env) {
 static void do_it(env_t *env, const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
-    ref_t program = cons(symbol("do"), readstream(env, input));
-    print(eval(program));
+    ref_t program = cons(intern(env, "do"), readstream(env, input));
+    print(eval(NIL, env, program));
     puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);

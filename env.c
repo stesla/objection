@@ -1,7 +1,9 @@
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include "alloc.h"
 #include "env.h"
+#include "error.h"
 #include "object.h"
 
 struct env {
@@ -38,3 +40,22 @@ ref_t intern(env_t *env, const char *name) {
   add_symbol(env, result);
   return result;
 }
+
+ref_t bind(ref_t closure, ref_t symbol, ref_t value) {
+  assert(islist(closure) && issymbol(symbol));
+  return cons(cons(symbol, value), closure);
+}
+
+ref_t lookup(ref_t closure, ref_t symbol) {
+  assert(islist(closure) && issymbol(symbol));
+  ref_t binding;
+  while (!isnil(closure)) {
+    binding = car(closure);
+    if (car(binding) == symbol)
+      return cdr(binding);
+    closure = cdr(closure);
+  }
+  error("void variable: %s", strvalue(symbol));
+  return NIL;
+}
+

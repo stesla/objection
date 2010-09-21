@@ -4,8 +4,8 @@
 #include <inttypes.h>
 
 typedef uint32_t ref_t;
-
-typedef ref_t (*fn_t)(ref_t args);
+typedef struct env env_t;
+typedef ref_t (*fn_t)(env_t *env, ref_t func, ref_t args);
 
 typedef enum {
   NO = 0,

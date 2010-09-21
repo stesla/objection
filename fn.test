@@ -1,0 +1,10 @@
+(list
+  ((fn () true))
+  ((fn (x) x) (* 6 7))
+  ((fn (x y) (eq y x)) (+ 1 2) 42)
+  (((fn (x) (fn (y) (+ x y))) 5) 4)
+  ((fn (x & ys) (list x ys)) 1 2 3))
+
+RESULT
+
+(true 42 nil 9 (1 (2 3)))

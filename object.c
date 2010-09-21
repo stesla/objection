@@ -54,7 +54,8 @@ struct cons {
 #define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG))
 
 struct function {
-  fn_t impl;
+  fn_t fn;
+  ref_t lambda;
   size_t arity;
   bool rest;
 };
@@ -149,9 +150,10 @@ ref_t integer(int i) {
   return NIL;
 }
 
-ref_t function(fn_t impl, size_t arity, bool rest) {
+ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest) {
   struct function *ptr = safe_malloc(sizeof(struct function));
-  ptr->impl = impl;
+  ptr->fn = fn;
+  ptr->lambda = lambda;
   ptr->arity = arity;
   ptr->rest = rest;
   return ((ref_t) ptr) + FUNCTION_POINTER_TAG;
@@ -259,7 +261,12 @@ static int list_length(ref_t obj) {
 
 fn_t getfn(ref_t obj) {
   assert(isfunction(obj));
-  return FN(obj)->impl;
+  return FN(obj)->fn;
+}
+
+ref_t getlambda(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->lambda;
 }
 
 size_t getarity(ref_t obj) {

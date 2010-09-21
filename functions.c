@@ -14,32 +14,32 @@ static ref_t binary_integer_op(ref_t (*op)(ref_t, ref_t), ref_t args) {
   return op(x, y);
 }
 
-static ref_t fn_add(ref_t args) {
+static ref_t fn_add(env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_add, args);
 }
 
-static ref_t fn_sub(ref_t args) {
+static ref_t fn_sub(env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_sub, args);
 }
 
-static ref_t fn_mul(ref_t args) {
+static ref_t fn_mul(env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_mul, args);
 }
 
-static ref_t fn_div(ref_t args) {
+static ref_t fn_div(env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_div, args);
 }
 
-static ref_t fn_eq(ref_t args) {
+static ref_t fn_eq(env_t *env, ref_t func, ref_t args) {
   return (car(args) == cadr(args)) ? TRUE : NIL;
 }
 
-static ref_t fn_list(ref_t args) {
+static ref_t fn_list(env_t *env, ref_t func, ref_t args) {
   return args;
 }
 
 static inline void make_builtin(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
-  set_function(intern(env, name), function(impl, arity, rest));
+  set_function(intern(env, name), function(impl, NIL, arity, rest));
 }
 
 void init_builtin_functions(env_t *env) {
