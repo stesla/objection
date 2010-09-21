@@ -38,8 +38,7 @@ static ref_t eval_do(ref_t closure, env_t *env, ref_t args) {
 
 static ref_t fn_fn(env_t *env, ref_t func, ref_t args) {
   ref_t lambda = getlambda(func);
-  ref_t closure = car(lambda), formals = cadr(lambda);
-  ref_t body = cons(intern(env, "do"), cddr(lambda));
+  ref_t closure = car(lambda), formals = cadr(lambda), body = cddr(lambda);
   int i;
   for (i = getarity(func); i > 0; i--) {
     closure = bind(closure, car(formals), car(args));
@@ -47,7 +46,7 @@ static ref_t fn_fn(env_t *env, ref_t func, ref_t args) {
   }
   if (hasrest(func))
     closure = bind(closure, cadr(formals), args);
-  return eval(closure, env, body);
+  return eval_do(closure, env, body);
 }
 
 static ref_t eval_fn(ref_t closure, env_t *env, ref_t args) {
