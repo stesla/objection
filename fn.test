@@ -1,10 +1,23 @@
 (list
+  ;; basic function
   ((fn () true))
+
+  ;; single parameter
   ((fn (x) x) (* 6 7))
+
+  ;; multiple parameters
   ((fn (x y) (eq y x)) (+ 1 2) 42)
+
+  ;; curried function demonstrating lexical closure
   (((fn (x) (fn (y) (+ x y))) 5) 4)
-  ((fn (x & ys) (list x ys)) 1 2 3))
+
+  ;; & before the last formal parameter signifies it should get the
+  ;; rest of the arguments as a list
+  ((fn (x & ys) (list x ys)) 1 2 3)
+
+  ;; nil should be an acceptable value for an argument
+  ((fn (x) x) nil))
 
 RESULT
 
-(true 42 nil 9 (1 (2 3)))
+(true 42 nil 9 (1 (2 3)) nil)

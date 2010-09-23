@@ -55,7 +55,6 @@ ref_t lookup(ref_t closure, ref_t symbol) {
       return cdr(binding);
     closure = cdr(closure);
   }
-  error("void variable: %s", strvalue(symbol));
-  return NIL;
+  return get_value(symbol);
 }
 

@@ -49,6 +49,8 @@ ref_t cddr(ref_t list);
 /* Symbols */
 ref_t get_function(ref_t sym);
 void set_function(ref_t sym, ref_t func);
+ref_t get_value(ref_t sym);
+void set_value(ref_t sym, ref_t func);
 
 /* Misc */
 int length(ref_t obj);

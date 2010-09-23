@@ -75,6 +75,11 @@ static bool isident(const char *token) {
 }
 
 static ref_t parsetoken(env_t *env, const char *token) {
+  if (token[0] == ':') {
+    ref_t symbol = intern(env, token);
+    set_value(symbol, symbol);
+    return symbol;
+  }
   if (!strcmp("nil", token))
     return NIL;
   if (!strcmp("true", token))

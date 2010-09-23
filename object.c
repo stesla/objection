@@ -70,6 +70,8 @@ struct string {
 
 struct symbol {
   uint8_t tag;
+  bool bound;
+  ref_t value;
   bool fbound;
   ref_t fvalue;
   /* must be last */
@@ -169,8 +171,8 @@ ref_t string(const char *str) {
 ref_t symbol(const char *str) {
   struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
   ptr->tag = SYMBOL_TAG;
-  ptr->fbound = NO;
-  ptr->fvalue = NIL;
+  ptr->bound = ptr->fbound = NO;
+  ptr->value = ptr->fvalue = NIL;
   strcpy(ptr->name, str);
   return make_ref(ptr, OTHER_POINTER_TAG);
 }
@@ -296,6 +298,20 @@ void set_function(ref_t symbol, ref_t value) {
   SYMBOL(symbol)->fbound = !isnil(value);
   SYMBOL(symbol)->fvalue = value;
 }
+
+ref_t get_value(ref_t symbol) {
+  assert(issymbol(symbol));
+  if (!(SYMBOL(symbol)->bound))
+    error("void variable: '%s'", SYMBOL(symbol)->name);
+  return SYMBOL(symbol)->value;
+}
+
+void set_value(ref_t symbol, ref_t value) {
+  assert(issymbol(symbol));
+  SYMBOL(symbol)->bound = !isnil(value);
+  SYMBOL(symbol)->value = value;
+}
+
 
 /**
  ** Misc
