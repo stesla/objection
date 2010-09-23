@@ -110,7 +110,7 @@ static inline ref_t readlist(env_t *env, FILE *in) {
 
 static ref_t readnext(env_t *env, int ch, FILE *in) {
   if (ch == ';')
-    ch = skipcomment(in);
+    return readnext(env, skipcomment(in), in);
   if (ch == '(')
     return readlist(env, in);
   else if (ch == '"')
