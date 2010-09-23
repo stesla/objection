@@ -4,8 +4,9 @@
 #include <sys/types.h>
 #include "types.h"
 
-#define NIL 2
-#define TRUE 6
+#define NIL     0x02
+#define TRUE    0x06
+#define UNBOUND 0xFE
 
 /* Type Checks */
 bool iscons(ref_t obj);
@@ -47,8 +48,11 @@ ref_t cdr(ref_t list);
 ref_t cddr(ref_t list);
 
 /* Symbols */
+bool has_function(ref_t sym);
 ref_t get_function(ref_t sym);
 void set_function(ref_t sym, ref_t func);
+
+bool has_value(ref_t sym);
 ref_t get_value(ref_t sym);
 void set_value(ref_t sym, ref_t func);
 

@@ -27,6 +27,8 @@
  * Other Immediates:
  * 000000010 - 0x02 - nil
  * 000000110 - 0x06 - true
+ * 111111110 - 0xFE - UNBOUND (note: this cannot be produced by read)
+ *
  *
  * Other Widetags:
  * 000000001 - 0x01 - string
@@ -70,9 +72,7 @@ struct string {
 
 struct symbol {
   uint8_t tag;
-  bool bound;
   ref_t value;
-  bool fbound;
   ref_t fvalue;
   /* must be last */
   char name[1];
@@ -171,8 +171,7 @@ ref_t string(const char *str) {
 ref_t symbol(const char *str) {
   struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
   ptr->tag = SYMBOL_TAG;
-  ptr->bound = ptr->fbound = NO;
-  ptr->value = ptr->fvalue = NIL;
+  ptr->fvalue = ptr->value = UNBOUND;
   strcpy(ptr->name, str);
   return make_ref(ptr, OTHER_POINTER_TAG);
 }
@@ -286,29 +285,37 @@ bool hasrest(ref_t obj) {
  ** Symbols
  **/
 
+bool has_fvalue(ref_t symbol) {
+  assert(issymbol(symbol));
+  return SYMBOL(symbol)->fvalue != UNBOUND;
+}
+
 ref_t get_function(ref_t symbol) {
   assert(issymbol(symbol));
-  if (!(SYMBOL(symbol)->fbound))
+  if (!has_fvalue(symbol))
     error("void function: '%s'", SYMBOL(symbol)->name);
   return SYMBOL(symbol)->fvalue;
 }
 
 void set_function(ref_t symbol, ref_t value) {
   assert(issymbol(symbol));
-  SYMBOL(symbol)->fbound = !isnil(value);
   SYMBOL(symbol)->fvalue = value;
+}
+
+ref_t has_value(ref_t symbol) {
+  assert(issymbol(symbol));
+  return SYMBOL(symbol)->value != UNBOUND;
 }
 
 ref_t get_value(ref_t symbol) {
   assert(issymbol(symbol));
-  if (!(SYMBOL(symbol)->bound))
+  if (!has_value(symbol))
     error("void variable: '%s'", SYMBOL(symbol)->name);
   return SYMBOL(symbol)->value;
 }
 
 void set_value(ref_t symbol, ref_t value) {
   assert(issymbol(symbol));
-  SYMBOL(symbol)->bound = !isnil(value);
   SYMBOL(symbol)->value = value;
 }
 

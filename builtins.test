@@ -8,10 +8,12 @@
   ;; basic list functions
   (cons 1 2) (cons 1 '(2 3)) (car (cons 1 2)) (cdr (cons 1 2))
 
-  ;; fset sets the function value of a symbol
+  ;; a symbol can have both a value and a function-value
   (do
-    (fset 'foo (fn (x y) (+ x (* x y))))
-    (foo 6 7)))
+    (set-value 'foo 6)
+    (set-function 'foo (fn (x y) (+ x (* x y))))
+    (foo foo 7)))
+
 
 RESULT
 
