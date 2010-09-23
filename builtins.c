@@ -10,12 +10,12 @@ static ref_t check(bool (*test)(ref_t), const char *msg, ref_t obj) {
   return obj;
 }
 
-static ref_t check_integer(ref_t obj) {
-  return check(isinteger, "not an integer", obj);
-}
-
 static ref_t check_function(ref_t obj) {
   return check(isfunction, "not a function", obj);
+}
+
+static ref_t check_integer(ref_t obj) {
+  return check(isinteger, "not an integer", obj);
 }
 
 static ref_t check_list(ref_t obj) {
@@ -35,12 +35,16 @@ static ref_t fn_add(env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_add, args);
 }
 
-static ref_t fn_sub(env_t *env, ref_t func, ref_t args) {
-  return binary_integer_op(integer_sub, args);
+static ref_t fn_car(env_t *env, ref_t func, ref_t args) {
+  return car(check_list(car(args)));
 }
 
-static ref_t fn_mul(env_t *env, ref_t func, ref_t args) {
-  return binary_integer_op(integer_mul, args);
+static ref_t fn_cdr(env_t *env, ref_t func, ref_t args) {
+  return cdr(check_list(car(args)));
+}
+
+static ref_t fn_cons(env_t *env, ref_t func, ref_t args) {
+  return cons(car(args), cadr(args));
 }
 
 static ref_t fn_div(env_t *env, ref_t func, ref_t args) {
@@ -55,16 +59,8 @@ static ref_t fn_list(env_t *env, ref_t func, ref_t args) {
   return args;
 }
 
-static ref_t fn_cons(env_t *env, ref_t func, ref_t args) {
-  return cons(car(args), cadr(args));
-}
-
-static ref_t fn_car(env_t *env, ref_t func, ref_t args) {
-  return car(check_list(car(args)));
-}
-
-static ref_t fn_cdr(env_t *env, ref_t func, ref_t args) {
-  return cdr(check_list(car(args)));
+static ref_t fn_mul(env_t *env, ref_t func, ref_t args) {
+  return binary_integer_op(integer_mul, args);
 }
 
 static ref_t fn_set_function(env_t *env, ref_t func, ref_t args) {
@@ -77,6 +73,10 @@ static ref_t fn_set_value(env_t *env, ref_t func, ref_t args) {
   ref_t symbol = check_symbol(car(args)), value = cadr(args);;
   set_value(symbol, value);
   return value;
+}
+
+static ref_t fn_sub(env_t *env, ref_t func, ref_t args) {
+  return binary_integer_op(integer_sub, args);
 }
 
 static inline void make_builtin(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
