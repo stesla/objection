@@ -16,6 +16,13 @@ static int skipspace(FILE *in) {
   return ch;
 }
 
+static int skipcomment(FILE *in) {
+  int ch = getc(in);
+  while (ch != '\n')
+    ch = getc(in);
+  return skipspace(in);
+}
+
 static ref_t readstring(FILE *in) {
   buffer *buf = allocbuffer();
   int ch = getc(in);
@@ -102,11 +109,13 @@ static inline ref_t readlist(env_t *env, FILE *in) {
 }
 
 static ref_t readnext(env_t *env, int ch, FILE *in) {
+  if (ch == ';')
+    ch = skipcomment(in);
   if (ch == '(')
     return readlist(env, in);
-  if (ch == '"')
+  else if (ch == '"')
     return readstring(in);
-  if (ch == '\'')
+  else if (ch == '\'')
     return cons(intern(env, "quote"), cons(readnext(env, skipspace(in), in), NIL));
   else {
     buffer *buf = allocbuffer();

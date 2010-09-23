@@ -1,7 +1,14 @@
 (list
+  ;; basic math functions are all binary
   (+ 1 1) (- 6 2) (* 2 3) (/ 32 4)
+
+  ;; eq tests reference equality
   (eq 'foo 'bar) (eq 'baz 'baz)
+
+  ;; basic list functions
   (cons 1 2) (cons 1 '(2 3)) (car (cons 1 2)) (cdr (cons 1 2))
+
+  ;; fset sets the function value of a symbol
   (do
     (fset 'foo (fn (x y) (+ x (* x y))))
     (foo 6 7)))
