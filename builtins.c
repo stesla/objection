@@ -36,6 +36,11 @@ static ref_t fn_add(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_add, args);
 }
 
+static ref_t fn_apply(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  ref_t func1 = check_function(car(args)), args1 = check_list(cadr(args));
+  return apply(closure, env, func1, args1);
+}
+
 static ref_t fn_car(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return car(check_list(car(args)));
 }
@@ -69,6 +74,11 @@ static ref_t fn_fn(ref_t closure, env_t *env, ref_t func, ref_t args) {
   if (hasrest(func))
     closure = bind(closure, cadr(formals), args);
   return special_do(closure, env, NIL, body);
+}
+
+static ref_t fn_function(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  ref_t func1 = car(args);
+  return issymbol(func1) ? get_function(func1) : check_function(func1);
 }
 
 static ref_t fn_list(ref_t closure, env_t *env, ref_t func, ref_t args) {
@@ -151,10 +161,12 @@ void init_builtins(env_t *env) {
   intern_builtin(env, "-", fn_sub, 2, NO);
   intern_builtin(env, "*", fn_mul, 2, NO);
   intern_builtin(env, "/", fn_div, 2, NO);
+  intern_builtin(env, "apply", fn_apply, 2, NO);
   intern_builtin(env, "car", fn_car, 1, NO);
   intern_builtin(env, "cdr", fn_cdr, 1, NO);
   intern_builtin(env, "cons", fn_cons, 2, NO);
   intern_builtin(env, "eq", fn_eq, 2, NO);
+  intern_builtin(env, "function", fn_function, 1, NO);
   intern_builtin(env, "set-function", fn_set_function, 2, NO);
   intern_builtin(env, "list", fn_list, 0, YES);
   intern_builtin(env, "set-value", fn_set_value, 2, NO);

@@ -12,9 +12,14 @@
   (do
     (set-value 'foo 6)
     (set-function 'foo (fn (x y) (+ x (* x y))))
-    (foo foo 7)))
+    (foo foo 7))
+
+  ;; Sup, dawg? I heard you like functions...
+  (apply (fn (x) x) '(:foo))
+  (apply (function (fn (y) y)) '(:bar))
+  (apply (function '+) '(1 2)))
 
 
 RESULT
 
-(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48)
+(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48 :foo :bar 3)
