@@ -30,9 +30,12 @@
  * 111111110 - 0xFE - UNBOUND (note: this cannot be produced by read)
  *
  *
- * Other Widetags:
+ * Object Tags:
  * 000000001 - 0x01 - string
  * 000000011 - 0x03 - symbol
+ * 000000100 - 0x04 - lamdba
+ * 000000110 - 0x06 - special form
+ *
  */
 
 
@@ -45,6 +48,8 @@
 /* Object Tags */
 #define STRING_TAG 1
 #define SYMBOL_TAG 3
+#define LAMBDA_TAG 4
+#define SPECIAL_FORM_TAG 6
 
 /**
  ** Types
@@ -56,6 +61,7 @@ struct cons {
 #define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG))
 
 struct function {
+  uint8_t tag;
   fn_t fn;
   ref_t lambda;
   size_t arity;
@@ -100,16 +106,20 @@ bool isinteger(ref_t obj) {
   return isfixnum(obj) /* || isbignum(obj)*/;
 }
 
-bool isnil(ref_t obj) {
-  return obj == NIL;
-}
-
 bool islist(ref_t obj) {
   return isnil(obj) || iscons(obj);
 }
 
+bool isnil(ref_t obj) {
+  return obj == NIL;
+}
+
 bool ispointer(ref_t obj) {
   return obj & 1;
+}
+
+bool isspecialform(ref_t obj) {
+  return isfunction(obj) && FN(obj)->tag == SPECIAL_FORM_TAG;
 }
 
 bool isstring(ref_t obj) {
@@ -154,6 +164,7 @@ ref_t integer(int i) {
 
 ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest) {
   struct function *ptr = safe_malloc(sizeof(struct function));
+  ptr->tag = LAMBDA_TAG;
   ptr->fn = fn;
   ptr->lambda = lambda;
   ptr->arity = arity;
@@ -280,6 +291,11 @@ bool hasrest(ref_t obj) {
   return FN(obj)->rest;
 }
 
+ref_t make_special_form(ref_t obj) {
+  assert(isfunction(obj));
+  FN(obj)->tag = SPECIAL_FORM_TAG;
+  return obj;
+}
 
 /**
  ** Symbols

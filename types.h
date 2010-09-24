@@ -5,7 +5,7 @@
 
 typedef unsigned long ref_t;
 typedef struct env env_t;
-typedef ref_t (*fn_t)(env_t *env, ref_t func, ref_t args);
+typedef ref_t (*fn_t)(ref_t closure, env_t *env, ref_t func, ref_t args);
 
 typedef enum {
   NO = 0,

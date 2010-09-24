@@ -16,6 +16,7 @@ bool isinteger(ref_t obj);
 bool islist(ref_t obj);
 bool isnil(ref_t obj);
 bool ispointer(ref_t obj);
+bool isspecialform(ref_t obj);
 bool isstring(ref_t obj);
 bool issymbol(ref_t obj);
 bool istrue(ref_t obj);
@@ -32,6 +33,7 @@ fn_t getfn(ref_t obj);
 ref_t getlambda(ref_t obj);
 size_t getarity(ref_t obj);
 bool hasrest(ref_t obj);
+ref_t make_special_form(ref_t obj);
 
 /* Integers */
 int intvalue(ref_t obj);
