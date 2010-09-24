@@ -1,3 +1,4 @@
+#include "error.h"
 #include "object.h"
 #include "print.h"
 
@@ -37,7 +38,7 @@ void print(ref_t obj) {
   else if (isfunction(obj))
     printf("<fn arity:%i rest:%s>", (int) getarity(obj), hasrest(obj) ? "YES" : "NO");
   else
-    printf("0x%x", obj);
+    error("cannot print object");
 }
 
 void println(ref_t obj) {

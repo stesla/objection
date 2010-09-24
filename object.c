@@ -302,7 +302,7 @@ void set_function(ref_t symbol, ref_t value) {
   SYMBOL(symbol)->fvalue = value;
 }
 
-ref_t has_value(ref_t symbol) {
+bool has_value(ref_t symbol) {
   assert(issymbol(symbol));
   return SYMBOL(symbol)->value != UNBOUND;
 }
