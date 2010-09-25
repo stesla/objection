@@ -1,0 +1,8 @@
+(set-function 'alpha (macro! (fn (x y) (list 'beta x y))))
+(set-function 'beta (macro! (fn (x y) (list 'gamma x y))))
+(set-function 'gamma (macro! (fn (x y) (* x y))))
+(alpha 6 7)
+
+RESULT
+
+42

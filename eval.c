@@ -11,6 +11,7 @@ static inline ref_t eval_args(ref_t closure, env_t *env, ref_t args) {
 
 static ref_t eval_list(ref_t closure, env_t *env, ref_t expr) {
   ref_t func = get_function(check_symbol(car(expr))), args = cdr(expr);
+  args = isspecialform(func) ? args : eval_args(closure, env, args);
   return apply(closure, env, func, args);
 }
 
@@ -24,11 +25,27 @@ ref_t apply(ref_t closure, env_t *env, ref_t func, ref_t args) {
     if (len != arity)
       argument_error(len);
   }
-  args = isspecialform(func) ? args : eval_args(closure, env, args);
   return fn(closure, env, func, args);
 }
 
+static ref_t macroexpand1(ref_t closure, env_t *env, ref_t expr) {
+  if (!iscons(expr))
+    return expr;
+  ref_t func = get_function(check_symbol(car(expr))), args = cdr(expr);
+  if (!ismacro(func))
+    return expr;
+  return apply(closure, env, func, args);
+}
+
+static ref_t macroexpand(ref_t closure, env_t *env, ref_t expr) {
+  ref_t expr1;
+  while ((expr1 = macroexpand1(closure, env, expr)) != expr)
+    expr = expr1;
+  return expr1;
+}
+
 ref_t eval(ref_t closure, env_t *env, ref_t expr) {
+  expr = macroexpand(closure, env, expr);
   if (iscons(expr))
     return eval_list(closure, env, expr);
   else if (issymbol(expr))

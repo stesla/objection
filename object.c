@@ -34,6 +34,7 @@
  * 000000001 - 0x01 - string
  * 000000011 - 0x03 - symbol
  * 000000100 - 0x04 - lamdba
+ * 000000101 - 0x05 - macro
  * 000000110 - 0x06 - special form
  *
  */
@@ -49,6 +50,7 @@
 #define STRING_TAG 1
 #define SYMBOL_TAG 3
 #define LAMBDA_TAG 4
+#define MACRO_TAG 5
 #define SPECIAL_FORM_TAG 6
 
 /**
@@ -108,6 +110,10 @@ bool isinteger(ref_t obj) {
 
 bool islist(ref_t obj) {
   return isnil(obj) || iscons(obj);
+}
+
+bool ismacro(ref_t obj) {
+  return isfunction(obj) && FN(obj)->tag == MACRO_TAG;
 }
 
 bool isnil(ref_t obj) {
@@ -318,7 +324,13 @@ bool hasrest(ref_t obj) {
   return FN(obj)->rest;
 }
 
-ref_t make_special_form(ref_t obj) {
+ref_t set_type_macro(ref_t obj) {
+  assert(isfunction(obj));
+  FN(obj)->tag = MACRO_TAG;
+  return obj;
+}
+
+ref_t set_type_special_form(ref_t obj) {
   assert(isfunction(obj));
   FN(obj)->tag = SPECIAL_FORM_TAG;
   return obj;

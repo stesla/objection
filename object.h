@@ -14,6 +14,7 @@ bool isfixnum(ref_t obj);
 bool isfunction(ref_t obj);
 bool isinteger(ref_t obj);
 bool islist(ref_t obj);
+bool ismacro(ref_t obj);
 bool isnil(ref_t obj);
 bool ispointer(ref_t obj);
 bool isspecialform(ref_t obj);
@@ -39,7 +40,8 @@ fn_t getfn(ref_t obj);
 ref_t getlambda(ref_t obj);
 size_t getarity(ref_t obj);
 bool hasrest(ref_t obj);
-ref_t make_special_form(ref_t obj);
+ref_t set_type_macro(ref_t obj);
+ref_t set_type_special_form(ref_t obj);
 
 /* Integers */
 int intvalue(ref_t obj);

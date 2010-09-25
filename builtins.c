@@ -38,6 +38,10 @@ static ref_t fn_eq(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return (car(args) == cadr(args)) ? TRUE : NIL;
 }
 
+static ref_t fn_macro(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return set_type_macro(check_function(car(args)));
+}
+
 static ref_t special_do(ref_t closure, env_t *env, ref_t func, ref_t args);
 static ref_t fn_fn(ref_t closure, env_t *env, ref_t func, ref_t args) {
   ref_t lambda = getlambda(func);
@@ -130,7 +134,7 @@ static inline void intern_builtin(env_t *env, const char *name, fn_t impl, size_
 }
 
 static inline void intern_special_form(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
-  set_function(intern(env, name), make_special_form(function(impl, NIL, arity, rest)));
+  set_function(intern(env, name), set_type_special_form(function(impl, NIL, arity, rest)));
 }
 
 void init_builtins(env_t *env) {
@@ -144,6 +148,7 @@ void init_builtins(env_t *env) {
   intern_builtin(env, "cons", fn_cons, 2, NO);
   intern_builtin(env, "eq", fn_eq, 2, NO);
   intern_builtin(env, "function", fn_function, 1, NO);
+  intern_builtin(env, "macro!", fn_macro, 1, NO);
   intern_builtin(env, "set-function", fn_set_function, 2, NO);
   intern_builtin(env, "list", fn_list, 0, YES);
   intern_builtin(env, "set-value", fn_set_value, 2, NO);
