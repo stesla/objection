@@ -4,29 +4,6 @@
 #include "builtins.h"
 #include "object.h"
 
-/* TODO: would be good to have a repr type function */
-static ref_t check(bool (*test)(ref_t), const char *msg, ref_t obj) {
-  if (!test(obj))
-    error(msg);
-  return obj;
-}
-
-static ref_t check_function(ref_t obj) {
-  return check(isfunction, "not a function", obj);
-}
-
-static ref_t check_integer(ref_t obj) {
-  return check(isinteger, "not an integer", obj);
-}
-
-static ref_t check_list(ref_t obj) {
-  return check(islist, "not a list", obj);
-}
-
-static ref_t check_symbol(ref_t obj) {
-  return check(issymbol, "not a symbol", obj);
-}
-
 static ref_t binary_integer_op(ref_t (*op)(ref_t, ref_t), ref_t args) {
   ref_t x = check_integer(car(args)), y = check_integer(cadr(args));
   return op(x, y);

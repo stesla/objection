@@ -10,14 +10,7 @@ static inline ref_t eval_args(ref_t closure, env_t *env, ref_t args) {
 }
 
 static ref_t eval_list(ref_t closure, env_t *env, ref_t expr) {
-  ref_t thecar = car(expr), args = cdr(expr), func;
-  if (issymbol(thecar)) {
-    func = get_function(thecar);
-  } else {
-    func = eval(closure, env, thecar);
-    if (!isfunction(func))
-      error("invalid function: not function object");
-  }
+  ref_t func = get_function(check_symbol(car(expr))), args = cdr(expr);
   return apply(closure, env, func, args);
 }
 

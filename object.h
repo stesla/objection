@@ -8,7 +8,7 @@
 #define TRUE    0x06
 #define UNBOUND 0xFE
 
-/* Type Checks */
+/* Type Predicates */
 bool iscons(ref_t obj);
 bool isfixnum(ref_t obj);
 bool isfunction(ref_t obj);
@@ -20,6 +20,12 @@ bool isspecialform(ref_t obj);
 bool isstring(ref_t obj);
 bool issymbol(ref_t obj);
 bool istrue(ref_t obj);
+
+/* Type Checks */
+ref_t check_function(ref_t obj);
+ref_t check_integer(ref_t obj);
+ref_t check_list(ref_t obj);
+ref_t check_symbol(ref_t obj);
 
 /* Constructors */
 ref_t cons(ref_t car, ref_t cdr);

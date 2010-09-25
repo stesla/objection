@@ -87,7 +87,7 @@ struct symbol {
 
 
 /**
- ** Type Checks
+ ** Type Predicates
  **/
 
 bool iscons(ref_t obj) {
@@ -136,6 +136,33 @@ bool issymbol(ref_t obj) {
 
 bool istrue(ref_t obj) {
   return obj == TRUE;
+}
+
+/**
+ ** Type Checks
+ **/
+
+/* TODO: would be good to have a repr type function */
+static ref_t check(bool (*test)(ref_t), const char *msg, ref_t obj) {
+  if (!test(obj))
+    error(msg);
+  return obj;
+}
+
+ref_t check_function(ref_t obj) {
+  return check(isfunction, "not a function", obj);
+}
+
+ref_t check_integer(ref_t obj) {
+  return check(isinteger, "not an integer", obj);
+}
+
+ref_t check_list(ref_t obj) {
+  return check(islist, "not a list", obj);
+}
+
+ref_t check_symbol(ref_t obj) {
+  return check(issymbol, "not a symbol", obj);
 }
 
 /**
