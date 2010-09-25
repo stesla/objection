@@ -153,7 +153,7 @@ static ref_t special_quote(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return car(args);
 }
 
-static inline void intern_builtin(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
+static inline void intern_function(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
   set_function(intern(env, name), function(impl, NIL, arity, rest));
 }
 
@@ -166,22 +166,22 @@ static inline void intern_special_form(env_t *env, const char *name, fn_t impl, 
 }
 
 void init_builtins(env_t *env) {
-  intern_builtin(env, "+", fn_add, 2, NO);
-  intern_builtin(env, "-", fn_sub, 2, NO);
-  intern_builtin(env, "*", fn_mul, 2, NO);
-  intern_builtin(env, "/", fn_div, 2, NO);
-  intern_builtin(env, "apply", fn_apply, 2, NO);
-  intern_builtin(env, "car", fn_car, 1, NO);
-  intern_builtin(env, "cdr", fn_cdr, 1, NO);
-  intern_builtin(env, "cons", fn_cons, 2, NO);
-  intern_builtin(env, "eq", fn_eq, 2, NO);
-  intern_builtin(env, "function", fn_function, 1, NO);
-  intern_builtin(env, "macro!", fn_macro, 1, NO);
-  intern_builtin(env, "macroexpand", fn_macroexpand, 1, NO);
-  intern_builtin(env, "macroexpand-1", fn_macroexpand1, 1, NO);
-  intern_builtin(env, "set-function", fn_set_function, 2, NO);
-  intern_builtin(env, "list", fn_list, 0, YES);
-  intern_builtin(env, "set-value", fn_set_value, 2, NO);
+  intern_function(env, "+", fn_add, 2, NO);
+  intern_function(env, "-", fn_sub, 2, NO);
+  intern_function(env, "*", fn_mul, 2, NO);
+  intern_function(env, "/", fn_div, 2, NO);
+  intern_function(env, "apply", fn_apply, 2, NO);
+  intern_function(env, "car", fn_car, 1, NO);
+  intern_function(env, "cdr", fn_cdr, 1, NO);
+  intern_function(env, "cons", fn_cons, 2, NO);
+  intern_function(env, "eq", fn_eq, 2, NO);
+  intern_function(env, "function", fn_function, 1, NO);
+  intern_function(env, "macro!", fn_macro, 1, NO);
+  intern_function(env, "macroexpand", fn_macroexpand, 1, NO);
+  intern_function(env, "macroexpand-1", fn_macroexpand1, 1, NO);
+  intern_function(env, "set-function", fn_set_function, 2, NO);
+  intern_function(env, "list", fn_list, 0, YES);
+  intern_function(env, "set-value", fn_set_value, 2, NO);
 
   intern_macro(env, "defn", macro_defn, 1, YES);
   intern_macro(env, "defmacro", macro_defmacro, 1, YES);
