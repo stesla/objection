@@ -17,9 +17,23 @@
   ;; Sup, dawg? I heard you like functions...
   (apply (fn (x) x) '(:foo))
   (apply (function (fn (y) y)) '(:bar))
-  (apply (function '+) '(1 2)))
+  (apply (function '+) '(1 2))
+
+  ;; macros for defining things, such as macros and functions
+  (do
+    (defmacro foo (x y) (bar x y))
+    (defn bar (x y) (+ x y))
+    (foo 6 7))
+
+  ;; macro-expansion functions
+  (do
+    (defmacro alpha (x y) (list 'beta x y))
+    (defmacro beta (x y) (list 'gamma x y))
+    (list
+     (macroexpand '(alpha 1 2))
+     (macroexpand-1 '(alpha 1 2)))))
 
 
 RESULT
 
-(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48 :foo :bar 3)
+(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48 :foo :bar 3 13 ((gamma 1 2) (beta 1 2)))

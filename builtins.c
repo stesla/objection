@@ -38,10 +38,6 @@ static ref_t fn_eq(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return (car(args) == cadr(args)) ? TRUE : NIL;
 }
 
-static ref_t fn_macro(ref_t closure, env_t *env, ref_t func, ref_t args) {
-  return set_type_macro(check_function(car(args)));
-}
-
 static ref_t special_do(ref_t closure, env_t *env, ref_t func, ref_t args);
 static ref_t fn_fn(ref_t closure, env_t *env, ref_t func, ref_t args) {
   ref_t lambda = getlambda(func);
@@ -66,6 +62,18 @@ static ref_t fn_list(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return args;
 }
 
+static ref_t fn_macro(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return set_type_macro(check_function(car(args)));
+}
+
+static ref_t fn_macroexpand(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return macroexpand(closure, env, car(args));
+}
+
+static ref_t fn_macroexpand1(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return macroexpand1(closure, env, car(args));
+}
+
 static ref_t fn_mul(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_mul, args);
 }
@@ -84,6 +92,22 @@ static ref_t fn_set_value(ref_t closure, env_t *env, ref_t func, ref_t args) {
 
 static ref_t fn_sub(ref_t closure, env_t *env, ref_t func, ref_t args) {
   return binary_integer_op(integer_sub, args);
+}
+
+static ref_t special_fn(ref_t closure, env_t *env, ref_t func, ref_t args);
+
+static ref_t macro_defn(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return cons(intern(env, "set-function"),
+              cons(cons(intern(env, "quote"), cons(check_symbol(car(args)), NIL)),
+                   cons(cons(intern(env, "fn"), cdr(args)), NIL)));
+}
+
+/* (set-function (quote CAR) (macro! (fn CDR))) */
+static ref_t macro_defmacro(ref_t closure, env_t *env, ref_t func, ref_t args) {
+  return cons(intern(env, "set-function"),
+              cons(cons(intern(env, "quote"), cons(check_symbol(car(args)), NIL)),
+                   cons(cons(intern(env, "macro!"),
+                             cons(cons(intern(env, "fn"), cdr(args)), NIL)), NIL)));
 }
 
 static ref_t special_do(ref_t closure, env_t *env, ref_t func, ref_t args) {
@@ -133,6 +157,10 @@ static inline void intern_builtin(env_t *env, const char *name, fn_t impl, size_
   set_function(intern(env, name), function(impl, NIL, arity, rest));
 }
 
+static inline void intern_macro(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
+  set_function(intern(env, name), set_type_macro(function(impl, NIL, arity, rest)));
+}
+
 static inline void intern_special_form(env_t *env, const char *name, fn_t impl, size_t arity, bool rest) {
   set_function(intern(env, name), set_type_special_form(function(impl, NIL, arity, rest)));
 }
@@ -149,9 +177,14 @@ void init_builtins(env_t *env) {
   intern_builtin(env, "eq", fn_eq, 2, NO);
   intern_builtin(env, "function", fn_function, 1, NO);
   intern_builtin(env, "macro!", fn_macro, 1, NO);
+  intern_builtin(env, "macroexpand", fn_macroexpand, 1, NO);
+  intern_builtin(env, "macroexpand-1", fn_macroexpand1, 1, NO);
   intern_builtin(env, "set-function", fn_set_function, 2, NO);
   intern_builtin(env, "list", fn_list, 0, YES);
   intern_builtin(env, "set-value", fn_set_value, 2, NO);
+
+  intern_macro(env, "defn", macro_defn, 1, YES);
+  intern_macro(env, "defmacro", macro_defmacro, 1, YES);
 
   intern_special_form(env, "do", special_do, 0, YES);
   intern_special_form(env, "fn", special_fn, 0, YES);

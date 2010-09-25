@@ -340,14 +340,14 @@ ref_t set_type_special_form(ref_t obj) {
  ** Symbols
  **/
 
-bool has_fvalue(ref_t symbol) {
+bool has_function(ref_t symbol) {
   assert(issymbol(symbol));
   return SYMBOL(symbol)->fvalue != UNBOUND;
 }
 
 ref_t get_function(ref_t symbol) {
   assert(issymbol(symbol));
-  if (!has_fvalue(symbol))
+  if (!has_function(symbol))
     error("void function: '%s'", SYMBOL(symbol)->name);
   return SYMBOL(symbol)->fvalue;
 }
