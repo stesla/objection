@@ -1,13 +1,10 @@
 #include <assert.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "alloc.h"
 #include "error.h"
+#include "gc.h"
 #include "object.h"
-
-#pragma pack(8)
 
 /**
  * Objects are allocated on double-word boundaries. This gives us some
@@ -44,7 +41,6 @@
 #define LIST_POINTER_TAG 3
 #define FUNCTION_POINTER_TAG 5
 #define OTHER_POINTER_TAG 7
-#define POINTER_MASK 7
 
 /* Object Tags */
 #define STRING_TAG 1
@@ -93,7 +89,7 @@ struct symbol {
  **/
 
 bool iscons(ref_t obj) {
-  return (obj & POINTER_MASK) == LIST_POINTER_TAG;
+  return (obj & LOWTAG_MASK) == LIST_POINTER_TAG;
 }
 
 bool isfixnum(ref_t obj) {
@@ -101,7 +97,7 @@ bool isfixnum(ref_t obj) {
 }
 
 bool isfunction(ref_t obj) {
-  return (obj & POINTER_MASK) == FUNCTION_POINTER_TAG;
+  return (obj & LOWTAG_MASK) == FUNCTION_POINTER_TAG;
 }
 
 bool isinteger(ref_t obj) {
@@ -129,13 +125,13 @@ bool isspecialform(ref_t obj) {
 }
 
 bool isstring(ref_t obj) {
-  if ((obj & POINTER_MASK) != OTHER_POINTER_TAG)
+  if ((obj & LOWTAG_MASK) != OTHER_POINTER_TAG)
     return NO;
   return STRING(obj)->tag == STRING_TAG;
 }
 
 bool issymbol(ref_t obj) {
-  if ((obj & POINTER_MASK) != OTHER_POINTER_TAG)
+  if ((obj & LOWTAG_MASK) != OTHER_POINTER_TAG)
     return NO;
   return SYMBOL(obj)->tag == SYMBOL_TAG;
 }
@@ -175,14 +171,14 @@ ref_t check_symbol(ref_t obj) {
  ** Constructors
  **/
 
-inline ref_t make_ref(void *ptr, uint8_t lowtag) {
-  return ((ref_t) ptr) + lowtag;
+inline ref_t make_ref(ref_t ptr, uint8_t lowtag) {
+  return ptr + lowtag;
 }
 
 ref_t cons(ref_t car, ref_t cdr) {
-  struct cons *ptr = safe_malloc(sizeof(struct cons));
-  ptr->car = car, ptr->cdr = cdr;
-  return make_ref(ptr, LIST_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct cons)) + LIST_POINTER_TAG;
+  CONS(obj)->car = car, CONS(obj)->cdr = cdr;
+  return obj;
 }
 
 #define FIXNUM_MAX  536870911
@@ -196,28 +192,28 @@ ref_t integer(int i) {
 }
 
 ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest) {
-  struct function *ptr = safe_malloc(sizeof(struct function));
-  ptr->tag = LAMBDA_TAG;
-  ptr->fn = fn;
-  ptr->lambda = lambda;
-  ptr->arity = arity;
-  ptr->rest = rest;
-  return ((ref_t) ptr) + FUNCTION_POINTER_TAG;
+  ref_t obj = gc_alloc(sizeof(struct function)) + FUNCTION_POINTER_TAG;
+  FN(obj)->tag = LAMBDA_TAG;
+  FN(obj)->fn = fn;
+  FN(obj)->lambda = lambda;
+  FN(obj)->arity = arity;
+  FN(obj)->rest = rest;
+  return obj;
 }
 
 ref_t string(const char *str) {
-  struct string *ptr = safe_malloc(sizeof(struct string) + strlen(str));
-  ptr->tag = STRING_TAG;
-  strcpy(ptr->bytes, str);
-  return make_ref(ptr, OTHER_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str)) + OTHER_POINTER_TAG;
+  STRING(obj)->tag = STRING_TAG;
+  strcpy(STRING(obj)->bytes, str);
+  return obj;
 }
 
 ref_t symbol(const char *str) {
-  struct symbol *ptr = safe_malloc(sizeof(struct symbol) + strlen(str));
-  ptr->tag = SYMBOL_TAG;
-  ptr->fvalue = ptr->value = UNBOUND;
-  strcpy(ptr->name, str);
-  return make_ref(ptr, OTHER_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str)) + OTHER_POINTER_TAG;
+  SYMBOL(obj)->tag = SYMBOL_TAG;
+  SYMBOL(obj)->fvalue = SYMBOL(obj)->value = UNBOUND;
+  strcpy(SYMBOL(obj)->name, str);
+  return obj;
 }
 
 /**
