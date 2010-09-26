@@ -15,22 +15,22 @@ static void usage() {
   exit(1);
 }
 
-static void repl(ref_t env) {
+static void repl() {
   for (;;) {
     printf("> ");
     if (setjmp(error_loc) == 0)
-      print(eval(NIL, env, readsexp(env, stdin)));
+      print(eval(NIL, readsexp(stdin)));
     else
       printf("ERROR: %s", the_error);
     puts("");
   }
 }
 
-static void do_it(ref_t env, const char *filename) {
+static void do_it(const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
-    ref_t program = cons(intern(env, "do"), readstream(env, input));
-    print(eval(NIL, env, program));
+    ref_t program = cons(intern("do"), readstream(input));
+    print(eval(NIL, program));
     puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);
@@ -57,13 +57,12 @@ int main(int argc, char **argv) {
     }
   }
 
-  ref_t env = make_env();
-  init_builtins(env);
+  init_builtins();
 
   if (do_mode)
-    do_it(env, input_file);
+    do_it(input_file);
   else
-    repl(env);
+    repl();
 
   return 0;
 }

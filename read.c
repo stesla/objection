@@ -74,9 +74,9 @@ static bool isident(const char *token) {
   return YES;
 }
 
-static ref_t parsetoken(ref_t env, const char *token) {
+static ref_t parsetoken(const char *token) {
   if (token[0] == ':') {
-    ref_t symbol = intern(env, token);
+    ref_t symbol = intern(token);
     set_value(symbol, symbol);
     return symbol;
   }
@@ -91,53 +91,53 @@ static ref_t parsetoken(ref_t env, const char *token) {
       return integer(val);
   }
   if (isident(token))
-    return intern(env, token);
+    return intern(token);
   error("invalid token: '%s'", token);
   return NIL;
 }
 
-static ref_t readnext(ref_t env, int ch, FILE *in);
+static ref_t readnext(int ch, FILE *in);
 
-static ref_t readseq(ref_t env, bool islist, FILE *in) {
+static ref_t readseq(bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
       error("end of file reached before end of list");
   else if (ch == EOF || (islist && ch == ')'))
     return NIL;
-  ref_t car = readnext(env, ch, in);
-  ref_t cdr = readseq(env, islist, in);
+  ref_t car = readnext(ch, in);
+  ref_t cdr = readseq(islist, in);
   return cons(car, cdr);
 }
 
-static inline ref_t readlist(ref_t env, FILE *in) {
-  return readseq(env, YES, in);
+static inline ref_t readlist(FILE *in) {
+  return readseq(YES, in);
 }
 
-static ref_t readnext(ref_t env, int ch, FILE *in) {
+static ref_t readnext(int ch, FILE *in) {
   if (ch == ';')
-    return readnext(env, skipcomment(in), in);
+    return readnext(skipcomment(in), in);
   if (ch == '(')
-    return readlist(env, in);
+    return readlist(in);
   else if (ch == '"')
     return readstring(in);
   else if (ch == '\'')
-    return cons(intern(env, "quote"), cons(readnext(env, skipspace(in), in), NIL));
+    return cons(intern("quote"), cons(readnext(skipspace(in), in), NIL));
   else {
     buffer *buf = allocbuffer();
     readtoken(ch, in, buf);
-    ref_t result = parsetoken(env, bufferstring(buf));
+    ref_t result = parsetoken(bufferstring(buf));
     freebuffer(buf);
     return result;
   }
 }
 
-ref_t readsexp(ref_t env, FILE *in) {
+ref_t readsexp(FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF)
     exit(0);
-  return readnext(env, ch, in);
+  return readnext(ch, in);
 }
 
-ref_t readstream(ref_t env, FILE *in) {
-  return readseq(env, NO, in);
+ref_t readstream(FILE *in) {
+  return readseq(NO, in);
 }

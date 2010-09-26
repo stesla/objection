@@ -6,16 +6,14 @@
 #include "error.h"
 #include "object.h"
 
-ref_t make_env() {
-  return cons(NIL,NIL);
+ref_t symbol_table = NIL;
+
+static inline void add_symbol(ref_t symbol) {
+  symbol_table = cons(symbol, symbol_table);
 }
 
-static inline void add_symbol(ref_t env, ref_t symbol) {
-  set_car(env, cons(symbol, car(env)));
-}
-
-static inline bool find_symbol(ref_t env, const char *name, ref_t *result) {
-  ref_t symbols = car(env);
+static inline bool find_symbol(const char *name, ref_t *result) {
+  ref_t symbols = symbol_table;
   while (!isnil(symbols)) {
     *result = car(symbols);
     if (!strcmp(name, strvalue(*result)))
@@ -25,13 +23,12 @@ static inline bool find_symbol(ref_t env, const char *name, ref_t *result) {
   return NO;
 }
 
-ref_t intern(ref_t env, const char *name) {
-  assert(iscons(env));
+ref_t intern(const char *name) {
   ref_t result;
-  if (find_symbol(env, name, &result))
+  if (find_symbol(name, &result))
     return result;
   result = symbol(name);
-  add_symbol(env, result);
+  add_symbol(result);
   return result;
 }
 
