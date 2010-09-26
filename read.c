@@ -74,7 +74,7 @@ static bool isident(const char *token) {
   return YES;
 }
 
-static ref_t parsetoken(env_t *env, const char *token) {
+static ref_t parsetoken(ref_t env, const char *token) {
   if (token[0] == ':') {
     ref_t symbol = intern(env, token);
     set_value(symbol, symbol);
@@ -96,9 +96,9 @@ static ref_t parsetoken(env_t *env, const char *token) {
   return NIL;
 }
 
-static ref_t readnext(env_t *env, int ch, FILE *in);
+static ref_t readnext(ref_t env, int ch, FILE *in);
 
-static ref_t readseq(env_t *env, bool islist, FILE *in) {
+static ref_t readseq(ref_t env, bool islist, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF && islist)
       error("end of file reached before end of list");
@@ -109,11 +109,11 @@ static ref_t readseq(env_t *env, bool islist, FILE *in) {
   return cons(car, cdr);
 }
 
-static inline ref_t readlist(env_t *env, FILE *in) {
+static inline ref_t readlist(ref_t env, FILE *in) {
   return readseq(env, YES, in);
 }
 
-static ref_t readnext(env_t *env, int ch, FILE *in) {
+static ref_t readnext(ref_t env, int ch, FILE *in) {
   if (ch == ';')
     return readnext(env, skipcomment(in), in);
   if (ch == '(')
@@ -131,13 +131,13 @@ static ref_t readnext(env_t *env, int ch, FILE *in) {
   }
 }
 
-ref_t readsexp(env_t *env, FILE *in) {
+ref_t readsexp(ref_t env, FILE *in) {
   int ch = skipspace(in);
   if (ch == EOF)
     exit(0);
   return readnext(env, ch, in);
 }
 
-ref_t readstream(env_t *env, FILE *in) {
+ref_t readstream(ref_t env, FILE *in) {
   return readseq(env, NO, in);
 }

@@ -290,6 +290,16 @@ ref_t cddr(ref_t list) {
   return cdr(cdr(list));
 }
 
+void set_car(ref_t cons, ref_t value) {
+  assert(iscons(cons));
+  CONS(cons)->car = value;
+}
+
+void set_cdr(ref_t cons, ref_t value) {
+  assert(iscons(cons));
+  CONS(cons)->cdr = value;
+}
+
 static int list_length(ref_t obj) {
   assert(islist(obj));
   int i = 0;

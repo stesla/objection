@@ -3,6 +3,6 @@
 
 #include "types.h"
 
-void init_builtins(env_t *env);
+void init_builtins(ref_t env);
 
 #endif

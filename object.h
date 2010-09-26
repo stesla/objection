@@ -56,6 +56,8 @@ ref_t cadr(ref_t list);
 ref_t caddr(ref_t list);
 ref_t cdr(ref_t list);
 ref_t cddr(ref_t list);
+void set_car(ref_t cons, ref_t value);
+void set_cdr(ref_t cons, ref_t value);
 
 /* Symbols */
 bool has_function(ref_t sym);

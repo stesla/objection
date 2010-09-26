@@ -6,23 +6,16 @@
 #include "error.h"
 #include "object.h"
 
-struct env {
-  ref_t symbols;
-};
-
-env_t *make_env() {
-  env_t *env = safe_malloc(sizeof(struct env));
-  memset(env, 0, sizeof(struct env));
-  env->symbols = NIL;
-  return env;
+ref_t make_env() {
+  return cons(NIL,NIL);
 }
 
-static void add_symbol(env_t *env, ref_t symbol) {
-  env->symbols = cons(symbol, env->symbols);
+static inline void add_symbol(ref_t env, ref_t symbol) {
+  set_car(env, cons(symbol, car(env)));
 }
 
-static bool find_symbol(env_t *env, const char *name, ref_t *result) {
-  ref_t symbols = env->symbols;
+static inline bool find_symbol(ref_t env, const char *name, ref_t *result) {
+  ref_t symbols = car(env);
   while (!isnil(symbols)) {
     *result = car(symbols);
     if (!strcmp(name, strvalue(*result)))
@@ -32,7 +25,8 @@ static bool find_symbol(env_t *env, const char *name, ref_t *result) {
   return NO;
 }
 
-ref_t intern(env_t *env, const char *name) {
+ref_t intern(ref_t env, const char *name) {
+  assert(iscons(env));
   ref_t result;
   if (find_symbol(env, name, &result))
     return result;
