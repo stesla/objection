@@ -18,8 +18,11 @@ static void usage() {
 static void repl() {
   for (;;) {
     printf("> ");
-    if (setjmp(error_loc) == 0)
-      print(eval(readsexp(stdin)));
+    if (setjmp(error_loc) == 0) {
+      push_expr(readsexp(stdin));
+      eval();
+      print(pop_expr());
+    }
     else
       printf("ERROR: %s", the_error);
     puts("");
@@ -29,8 +32,9 @@ static void repl() {
 static void do_it(const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
-    ref_t program = cons(intern("do"), readstream(input));
-    print(eval(program));
+    push_expr(cons(intern("do"), readstream(input)));
+    eval();
+    print(pop_expr());
     puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);
