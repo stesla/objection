@@ -9,117 +9,120 @@ static ref_t binary_integer_op(ref_t (*op)(ref_t, ref_t), ref_t args) {
   return op(x, y);
 }
 
-static ref_t fn_add(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_add(ref_t func, ref_t args) {
   return binary_integer_op(integer_add, args);
 }
 
-static ref_t fn_apply(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_apply(ref_t func, ref_t args) {
   ref_t func1 = check_function(car(args)), args1 = check_list(cadr(args));
-  return apply(closure, func1, args1);
+  return apply(func1, args1);
 }
 
-static ref_t fn_car(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_car(ref_t func, ref_t args) {
   return car(check_list(car(args)));
 }
 
-static ref_t fn_cdr(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_cdr(ref_t func, ref_t args) {
   return cdr(check_list(car(args)));
 }
 
-static ref_t fn_cons(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_cons(ref_t func, ref_t args) {
   return cons(car(args), cadr(args));
 }
 
-static ref_t fn_div(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_div(ref_t func, ref_t args) {
   return binary_integer_op(integer_div, args);
 }
 
-static ref_t fn_eq(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_eq(ref_t func, ref_t args) {
   return (car(args) == cadr(args)) ? TRUE : NIL;
 }
 
-static ref_t special_do(ref_t closure, ref_t func, ref_t args);
-static ref_t fn_fn(ref_t closure, ref_t func, ref_t args) {
+static ref_t special_do(ref_t func, ref_t args);
+static ref_t fn_fn(ref_t func, ref_t args) {
   ref_t lambda = getlambda(func);
   ref_t formals = cadr(lambda), body = cddr(lambda);
+  ref_t old_closure = current_closure, result;
   int i;
-  closure = car(lambda);
+  current_closure = car(lambda);
   for (i = getarity(func); i > 0; i--) {
-    closure = bind(closure, car(formals), car(args));
+    bind(car(formals), car(args));
     formals = cdr(formals), args = cdr(args);
   }
   if (hasrest(func))
-    closure = bind(closure, cadr(formals), args);
-  return special_do(closure, NIL, body);
+    bind(cadr(formals), args);
+  result = special_do(NIL, body);
+  current_closure = old_closure;
+  return result;
 }
 
-static ref_t fn_function(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_function(ref_t func, ref_t args) {
   ref_t func1 = car(args);
   return issymbol(func1) ? get_function(func1) : check_function(func1);
 }
 
-static ref_t fn_list(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_list(ref_t func, ref_t args) {
   return args;
 }
 
-static ref_t fn_macro(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_macro(ref_t func, ref_t args) {
   return set_type_macro(check_function(car(args)));
 }
 
-static ref_t fn_macroexpand(ref_t closure, ref_t func, ref_t args) {
-  return macroexpand(closure, car(args));
+static ref_t fn_macroexpand(ref_t func, ref_t args) {
+  return macroexpand(car(args));
 }
 
-static ref_t fn_macroexpand1(ref_t closure, ref_t func, ref_t args) {
-  return macroexpand1(closure, car(args));
+static ref_t fn_macroexpand1(ref_t func, ref_t args) {
+  return macroexpand1(car(args));
 }
 
-static ref_t fn_mul(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_mul(ref_t func, ref_t args) {
   return binary_integer_op(integer_mul, args);
 }
 
-static ref_t fn_set_function(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_set_function(ref_t func, ref_t args) {
   ref_t symbol = check_symbol(car(args)), fn = check_function(cadr(args));
   set_function(symbol, fn);
   return fn;
 }
 
-static ref_t fn_set_value(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_set_value(ref_t func, ref_t args) {
   ref_t symbol = check_symbol(car(args)), value = cadr(args);;
   set_value(symbol, value);
   return value;
 }
 
-static ref_t fn_sub(ref_t closure, ref_t func, ref_t args) {
+static ref_t fn_sub(ref_t func, ref_t args) {
   return binary_integer_op(integer_sub, args);
 }
 
-static ref_t special_fn(ref_t closure, ref_t func, ref_t args);
+static ref_t special_fn(ref_t func, ref_t args);
 
-static ref_t macro_defn(ref_t closure, ref_t func, ref_t args) {
+static ref_t macro_defn(ref_t func, ref_t args) {
   return cons(intern("set-function"),
               cons(cons(intern("quote"), cons(check_symbol(car(args)), NIL)),
                    cons(cons(intern("fn"), cdr(args)), NIL)));
 }
 
 /* (set-function (quote CAR) (macro! (fn CDR))) */
-static ref_t macro_defmacro(ref_t closure, ref_t func, ref_t args) {
+static ref_t macro_defmacro(ref_t func, ref_t args) {
   return cons(intern("set-function"),
               cons(cons(intern("quote"), cons(check_symbol(car(args)), NIL)),
                    cons(cons(intern("macro!"),
                              cons(cons(intern("fn"), cdr(args)), NIL)), NIL)));
 }
 
-static ref_t special_do(ref_t closure, ref_t func, ref_t args) {
+static ref_t special_do(ref_t func, ref_t args) {
   ref_t result;
   do {
-    result = eval(closure, car(args));
+    result = eval(car(args));
     args = cdr(args);
   } while (!isnil(args));
   return result;
 }
 
-static ref_t special_fn(ref_t closure, ref_t func, ref_t args) {
+static ref_t special_fn(ref_t func, ref_t args) {
   ref_t formals = car(args);
   size_t arity = 0;
   bool hasrest = NO;
@@ -136,20 +139,20 @@ static ref_t special_fn(ref_t closure, ref_t func, ref_t args) {
     arity++;
     formals = cdr(formals);
   }
-  return function(fn_fn, cons(closure, args), arity, hasrest);
+  return function(fn_fn, cons(current_closure, args), arity, hasrest);
 }
 
-static ref_t special_if(ref_t closure, ref_t func, ref_t args) {
+static ref_t special_if(ref_t func, ref_t args) {
   size_t len = length(args);
   if (len < 2 || 3 < len)
     argument_error(len);
-  if (eval(closure, car(args)) == NIL)
-    return eval(closure, caddr(args));
+  if (eval(car(args)) == NIL)
+    return eval(caddr(args));
   else
-    return eval(closure, cadr(args));
+    return eval(cadr(args));
 }
 
-static ref_t special_quote(ref_t closure, ref_t func, ref_t args) {
+static ref_t special_quote(ref_t func, ref_t args) {
   return car(args);
 }
 

@@ -6,6 +6,7 @@
 #include "error.h"
 #include "object.h"
 
+ref_t current_closure = NIL;
 ref_t symbol_table = NIL;
 
 static inline void add_symbol(ref_t symbol) {
@@ -32,14 +33,16 @@ ref_t intern(const char *name) {
   return result;
 }
 
-ref_t bind(ref_t closure, ref_t symbol, ref_t value) {
-  assert(islist(closure) && issymbol(symbol));
-  return cons(cons(symbol, value), closure);
+void bind(ref_t symbol, ref_t value) {
+  assert(islist(current_closure));
+  assert(issymbol(symbol));
+  current_closure = cons(cons(symbol, value), current_closure);
 }
 
-ref_t lookup(ref_t closure, ref_t symbol) {
-  assert(islist(closure) && issymbol(symbol));
-  ref_t binding;
+ref_t lookup(ref_t symbol) {
+  assert(islist(current_closure));
+  assert(issymbol(symbol));
+  ref_t binding, closure = current_closure;
   while (!isnil(closure)) {
     binding = car(closure);
     if (car(binding) == symbol)

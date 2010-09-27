@@ -19,7 +19,7 @@ static void repl() {
   for (;;) {
     printf("> ");
     if (setjmp(error_loc) == 0)
-      print(eval(NIL, readsexp(stdin)));
+      print(eval(readsexp(stdin)));
     else
       printf("ERROR: %s", the_error);
     puts("");
@@ -30,7 +30,7 @@ static void do_it(const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
     ref_t program = cons(intern("do"), readstream(input));
-    print(eval(NIL, program));
+    print(eval(program));
     puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);

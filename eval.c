@@ -5,17 +5,17 @@
 #include "eval.h"
 #include "object.h"
 
-static inline ref_t eval_args(ref_t closure, ref_t args) {
-  return isnil(args) ? NIL : cons(eval(closure, car(args)), eval_args(closure, cdr(args)));
+static inline ref_t eval_args(ref_t args) {
+  return isnil(args) ? NIL : cons(eval(car(args)), eval_args(cdr(args)));
 }
 
-static ref_t eval_list(ref_t closure, ref_t expr) {
+static ref_t eval_list(ref_t expr) {
   ref_t func = get_function(check_symbol(car(expr))), args = cdr(expr);
-  args = isspecialform(func) ? args : eval_args(closure, args);
-  return apply(closure, func, args);
+  args = isspecialform(func) ? args : eval_args(args);
+  return apply(func, args);
 }
 
-ref_t apply(ref_t closure, ref_t func, ref_t args) {
+ref_t apply(ref_t func, ref_t args) {
   size_t len = length(args), arity = getarity(func);
   fn_t fn = getfn(func);
   if (hasrest(func)) {
@@ -25,10 +25,10 @@ ref_t apply(ref_t closure, ref_t func, ref_t args) {
     if (len != arity)
       argument_error(len);
   }
-  return fn(closure, func, args);
+  return fn(func, args);
 }
 
-ref_t macroexpand1(ref_t closure, ref_t expr) {
+ref_t macroexpand1(ref_t expr) {
   if (!iscons(expr))
     return expr;
   ref_t symbol = check_symbol(car(expr));
@@ -37,22 +37,22 @@ ref_t macroexpand1(ref_t closure, ref_t expr) {
   ref_t func = get_function(symbol), args = cdr(expr);
   if (!ismacro(func))
     return expr;
-  return apply(closure, func, args);
+  return apply(func, args);
 }
 
-ref_t macroexpand(ref_t closure, ref_t expr) {
+ref_t macroexpand(ref_t expr) {
   ref_t expr1;
-  while ((expr1 = macroexpand1(closure, expr)) != expr)
+  while ((expr1 = macroexpand1(expr)) != expr)
     expr = expr1;
   return expr1;
 }
 
-ref_t eval(ref_t closure, ref_t expr) {
-  expr = macroexpand(closure, expr);
+ref_t eval(ref_t expr) {
+  expr = macroexpand(expr);
   if (iscons(expr))
-    return eval_list(closure, expr);
+    return eval_list(expr);
   else if (issymbol(expr))
-    return lookup(closure, expr);
+    return lookup(expr);
   else
     return expr;
 }
