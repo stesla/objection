@@ -71,17 +71,17 @@ static void fn_macro(ref_t func) {
 }
 
 static void fn_macroexpand(ref_t func) {
-  push_expr();
+  push();
   current_expr = car(current_expr);
   macroexpand();
-  pop_expr();
+  pop();
 }
 
 static void fn_macroexpand1(ref_t func) {
-  push_expr();
+  push();
   current_expr = car(current_expr);
   macroexpand1();
-  pop_expr();
+  pop();
 }
 
 static void fn_mul(ref_t func) {
@@ -124,12 +124,12 @@ static void special_do(ref_t func) {
   ref_t body = current_expr;
   /* push the whole body onto the stack so it is all referenced while
      we're evaluating all of the expressions in it */
-  push_expr();
+  push();
   do {
     current_expr = car(body), body = cdr(body);
     eval();
   } while (!isnil(body));
-  pop_expr();
+  pop();
 }
 
 static void special_fn(ref_t func) {
@@ -159,14 +159,14 @@ static void special_if(ref_t func) {
     argument_error(len);
   /* Push the (cond if-branch else-branch) so that the branches remain
      referenced during the evaluation of the condition */
-  push_expr();
+  push();
   branches = cdr(current_expr), current_expr = car(current_expr);
   eval();
   if (current_expr == NIL)
     current_expr = cadr(branches);
   else
     current_expr = car(branches);
-  pop_expr();
+  pop();
   eval();
 }
 

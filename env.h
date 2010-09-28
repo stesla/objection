@@ -16,8 +16,8 @@ void bind(ref_t symbol, ref_t value);
 ref_t lookup(ref_t symbol);
 
 /* Expression Stack */
-ref_t peek_expr();
-void push_expr();
-void pop_expr();
+ref_t peek();
+void pop();
+void push();
 
 #endif

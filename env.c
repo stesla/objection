@@ -56,14 +56,14 @@ ref_t lookup(ref_t symbol) {
   return get_value(symbol);
 }
 
-ref_t peek_expr() {
+ref_t peek() {
   return car(expr_stack);
 }
 
-void push_expr() {
-  expr_stack = cons(current_expr, expr_stack);
+void pop() {
+  expr_stack = cdr(expr_stack);
 }
 
-void pop_expr() {
-  expr_stack = cdr(expr_stack);
+void push() {
+  expr_stack = cons(current_expr, expr_stack);
 }

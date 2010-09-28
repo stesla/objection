@@ -10,18 +10,18 @@ static inline void eval_args() {
   int i;
   /* Push the original args onto the stack to make sure they're
      referenced once we set current_expr to something else */
-  push_expr();
+  push();
   for (i = 0; !isnil(args); i++) {
     current_expr = car(args), args = cdr(args);
     eval();
     /* Put our newly calculated value onto the stack so it is
        referenced from somewhere. */
-    push_expr();
+    push();
   }
   current_expr = NIL;
-  for (; i > 0; i--, pop_expr())
-    current_expr = cons(peek_expr(), current_expr);
-  pop_expr();
+  for (; i > 0; i--, pop())
+    current_expr = cons(peek(), current_expr);
+  pop();
 }
 
 static void eval_list() {
