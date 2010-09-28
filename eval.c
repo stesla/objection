@@ -5,23 +5,31 @@
 #include "eval.h"
 #include "object.h"
 
-static inline ref_t eval_args(ref_t args) {
-  ref_t result = NIL;
-  int count;
-  for (count = 0; !isnil(args); count++) {
-    push_expr(car(args)), args = cdr(args);
+static inline void eval_args() {
+  ref_t args = current_expr;
+  int i;
+  /* Push the original args onto the stack to make sure they're
+     referenced once we set current_expr to something else */
+  push_expr();
+  for (i = 0; !isnil(args); i++) {
+    current_expr = car(args), args = cdr(args);
     eval();
+    /* Put our newly calculated value onto the stack so it is
+       referenced from somewhere. */
+    push_expr();
   }
-  for (; count > 0; count--)
-    result = cons(pop_expr(), result);
-  return result;
+  current_expr = NIL;
+  for (; i > 0; i--, pop_expr())
+    current_expr = cons(peek_expr(), current_expr);
+  pop_expr();
 }
 
 static void eval_list() {
-  ref_t expr = peek_expr();
-  ref_t func = get_function(check_symbol(car(expr))), args = cdr(expr);
-  args = isspecialform(func) ? args : eval_args(args);
-  apply(func, args);
+  ref_t func = get_function(check_symbol(car(current_expr)));
+  current_expr = cdr(current_expr);
+  if (!isspecialform(func))
+    eval_args();
+  apply(func, current_expr);
 }
 
 void apply(ref_t func, ref_t args) {
@@ -38,7 +46,7 @@ void apply(ref_t func, ref_t args) {
 }
 
 void macroexpand1() {
-  ref_t expr = peek_expr();
+  ref_t expr = current_expr;
   if (!iscons(expr))
     return;
   ref_t symbol = check_symbol(car(expr));
@@ -53,16 +61,16 @@ void macroexpand1() {
 void macroexpand() {
   ref_t expr;
   do {
-    expr = peek_expr();
+    expr = current_expr;
     macroexpand1();
-  } while (expr != peek_expr());
+  } while (expr != current_expr);
 }
 
 void eval() {
   macroexpand();
-  ref_t expr = peek_expr();
+  ref_t expr = current_expr;
   if (iscons(expr))
     eval_list();
   else if (issymbol(expr))
-    set_expr(lookup(expr));
+    current_expr = lookup(expr);
 }

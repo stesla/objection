@@ -9,6 +9,7 @@
 #include "print.h"
 
 ref_t current_closure = NIL;
+ref_t current_expr = NIL;
 ref_t expr_stack = NIL;
 ref_t symbol_table = NIL;
 
@@ -59,20 +60,10 @@ ref_t peek_expr() {
   return car(expr_stack);
 }
 
-void push_expr(ref_t expr) {
-  /* printf("push_expr: "); */
-  /* println(expr); */
-  expr_stack = cons(expr, expr_stack);
+void push_expr() {
+  expr_stack = cons(current_expr, expr_stack);
 }
 
-ref_t pop_expr() {
-  ref_t result = car(expr_stack);
-  /* printf("pop_expr: "); */
-  /* println(result); */
+void pop_expr() {
   expr_stack = cdr(expr_stack);
-  return result;
-}
-
-void set_expr(ref_t expr) {
-  set_car(expr_stack, expr);
 }

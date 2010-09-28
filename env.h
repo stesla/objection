@@ -4,6 +4,7 @@
 #include "types.h"
 
 ref_t current_closure;
+ref_t current_expr;
 ref_t expr_stack;
 ref_t symbol_table;
 
@@ -16,8 +17,7 @@ ref_t lookup(ref_t symbol);
 
 /* Expression Stack */
 ref_t peek_expr();
-void push_expr(ref_t expr);
-ref_t pop_expr();
-void set_expr(ref_t expr);
+void push_expr();
+void pop_expr();
 
 #endif
