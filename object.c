@@ -64,6 +64,7 @@ struct function {
   ref_t lambda;
   size_t arity;
   bool rest;
+  bool builtin;
 };
 #define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
 
@@ -191,13 +192,14 @@ ref_t integer(int i) {
   return NIL;
 }
 
-ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest) {
+ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest, bool builtin) {
   ref_t obj = gc_alloc(sizeof(struct function)) + FUNCTION_POINTER_TAG;
   FN(obj)->tag = LAMBDA_TAG;
   FN(obj)->fn = fn;
   FN(obj)->lambda = lambda;
   FN(obj)->arity = arity;
   FN(obj)->rest = rest;
+  FN(obj)->builtin = builtin;
   return obj;
 }
 
@@ -328,6 +330,11 @@ size_t getarity(ref_t obj) {
 bool hasrest(ref_t obj) {
   assert(isfunction(obj));
   return FN(obj)->rest;
+}
+
+bool isbuiltin(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->builtin;
 }
 
 ref_t set_type_macro(ref_t obj) {

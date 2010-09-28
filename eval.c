@@ -42,7 +42,9 @@ void apply(ref_t func) {
     if (len != arity)
       argument_error(len);
   }
-  fn(func);
+  if (!isbuiltin(func))
+    current_expr = cons(func, current_expr);
+  fn();
 }
 
 void macroexpand1() {
