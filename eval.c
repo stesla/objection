@@ -29,11 +29,11 @@ static void eval_list() {
   current_expr = cdr(current_expr);
   if (!isspecialform(func))
     eval_args();
-  apply(func, current_expr);
+  apply(func);
 }
 
-void apply(ref_t func, ref_t args) {
-  size_t len = length(args), arity = getarity(func);
+void apply(ref_t func) {
+  size_t len = length(current_expr), arity = getarity(func);
   fn_t fn = getfn(func);
   if (hasrest(func)) {
     if (len < arity)
@@ -42,20 +42,20 @@ void apply(ref_t func, ref_t args) {
     if (len != arity)
       argument_error(len);
   }
-  fn(func, args);
+  fn(func);
 }
 
 void macroexpand1() {
-  ref_t expr = current_expr;
-  if (!iscons(expr))
+  if (!iscons(current_expr))
     return;
-  ref_t symbol = check_symbol(car(expr));
+  ref_t symbol = check_symbol(car(current_expr));
   if (!has_function(symbol))
     return;
-  ref_t func = get_function(symbol), args = cdr(expr);
+  ref_t func = get_function(symbol);
   if (!ismacro(func))
     return;
-  apply(func, args);
+  current_expr = cdr(current_expr);
+  apply(func);
 }
 
 void macroexpand() {

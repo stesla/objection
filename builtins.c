@@ -4,132 +4,136 @@
 #include "builtins.h"
 #include "object.h"
 
-static void binary_integer_op(ref_t (*op)(ref_t, ref_t), ref_t args) {
-  ref_t x = check_integer(car(args)), y = check_integer(cadr(args));
+static void binary_integer_op(ref_t (*op)(ref_t, ref_t)) {
+  ref_t x = check_integer(car(current_expr)), y = check_integer(cadr(current_expr));
   current_expr = op(x, y);
 }
 
-static void fn_add(ref_t func, ref_t args) {
-  binary_integer_op(integer_add, args);
+static void fn_add(ref_t func) {
+  binary_integer_op(integer_add);
 }
 
-static void fn_apply(ref_t func, ref_t args) {
-  ref_t func1 = check_function(car(args)), args1 = check_list(cadr(args));
-  apply(func1, args1);
+static void fn_apply(ref_t func) {
+  ref_t func1 = check_function(car(current_expr));
+  current_expr = check_list(cadr(current_expr));
+  apply(func1);
 }
 
-static void fn_car(ref_t func, ref_t args) {
-  current_expr = car(check_list(car(args)));
+static void fn_car(ref_t func) {
+  current_expr = car(check_list(car(current_expr)));
 }
 
-static void fn_cdr(ref_t func, ref_t args) {
-  current_expr = cdr(check_list(car(args)));
+static void fn_cdr(ref_t func) {
+  current_expr = cdr(check_list(car(current_expr)));
 }
 
-static void fn_cons(ref_t func, ref_t args) {
-  current_expr = cons(car(args), cadr(args));
+static void fn_cons(ref_t func) {
+  current_expr = cons(car(current_expr), cadr(current_expr));
 }
 
-static void fn_div(ref_t func, ref_t args) {
-  binary_integer_op(integer_div, args);
+static void fn_div(ref_t func) {
+  binary_integer_op(integer_div);
 }
 
-static void fn_eq(ref_t func, ref_t args) {
-  current_expr = (car(args) == cadr(args)) ? TRUE : NIL;
+static void fn_eq(ref_t func) {
+  current_expr = (car(current_expr) == cadr(current_expr)) ? TRUE : NIL;
 }
 
-static void special_do(ref_t func, ref_t args);
-static void fn_fn(ref_t func, ref_t args) {
+static void special_do(ref_t func);
+static void fn_fn(ref_t func) {
   ref_t lambda = getlambda(func);
   ref_t formals = cadr(lambda), body = cddr(lambda);
   ref_t old_closure = current_closure;
   int i;
   current_closure = car(lambda);
   for (i = getarity(func); i > 0; i--) {
-    bind(car(formals), car(args));
-    formals = cdr(formals), args = cdr(args);
+    bind(car(formals), car(current_expr));
+    formals = cdr(formals), current_expr = cdr(current_expr);
   }
   if (hasrest(func))
-    bind(cadr(formals), args);
-  special_do(NIL, body);
+    bind(cadr(formals), current_expr);
+  current_expr = body;
+  special_do(NIL);
   current_closure = old_closure;
 }
 
-static void fn_function(ref_t func, ref_t args) {
-  ref_t func1 = car(args);
+static void fn_function(ref_t func) {
+  ref_t func1 = car(current_expr);
   current_expr = issymbol(func1) ? get_function(func1) : check_function(func1);
 }
 
-static void fn_list(ref_t func, ref_t args) {
-  current_expr = args;
+static void fn_list(ref_t func) {
+  /* current_expr already has what we want in it */
 }
 
-static void fn_macro(ref_t func, ref_t args) {
-  current_expr = set_type_macro(check_function(car(args)));
+static void fn_macro(ref_t func) {
+  current_expr = set_type_macro(check_function(car(current_expr)));
 }
 
-static void fn_macroexpand(ref_t func, ref_t args) {
+static void fn_macroexpand(ref_t func) {
   push_expr();
-  current_expr = car(args);
+  current_expr = car(current_expr);
   macroexpand();
   pop_expr();
 }
 
-static void fn_macroexpand1(ref_t func, ref_t args) {
+static void fn_macroexpand1(ref_t func) {
   push_expr();
-  current_expr = car(args);
+  current_expr = car(current_expr);
   macroexpand1();
   pop_expr();
 }
 
-static void fn_mul(ref_t func, ref_t args) {
-  binary_integer_op(integer_mul, args);
+static void fn_mul(ref_t func) {
+  binary_integer_op(integer_mul);
 }
 
-static void fn_set_function(ref_t func, ref_t args) {
-  ref_t symbol = check_symbol(car(args)), fn = check_function(cadr(args));
+static void fn_set_function(ref_t func) {
+  ref_t symbol = check_symbol(car(current_expr)), fn = check_function(cadr(current_expr));
   set_function(symbol, fn);
   current_expr = fn;
 }
 
-static void fn_set_value(ref_t func, ref_t args) {
-  ref_t symbol = check_symbol(car(args)), value = cadr(args);;
+static void fn_set_value(ref_t func) {
+  ref_t symbol = check_symbol(car(current_expr)), value = cadr(current_expr);;
   set_value(symbol, value);
   current_expr = value;
 }
 
-static void fn_sub(ref_t func, ref_t args) {
-  binary_integer_op(integer_sub, args);
+static void fn_sub(ref_t func) {
+  binary_integer_op(integer_sub);
 }
 
-static void special_fn(ref_t func, ref_t args);
+static void special_fn(ref_t func);
 
-static void macro_defn(ref_t func, ref_t args) {
+static void macro_defn(ref_t func) {
   current_expr = cons(intern("set-function"),
-                      cons(cons(intern("quote"), cons(check_symbol(car(args)), NIL)),
-                           cons(cons(intern("fn"), cdr(args)), NIL)));
+                      cons(cons(intern("quote"), cons(check_symbol(car(current_expr)), NIL)),
+                           cons(cons(intern("fn"), cdr(current_expr)), NIL)));
 }
 
 /* (set-function (quote CAR) (macro! (fn CDR))) */
-static void macro_defmacro(ref_t func, ref_t args) {
+static void macro_defmacro(ref_t func) {
   current_expr = cons(intern("set-function"),
-                      cons(cons(intern("quote"), cons(check_symbol(car(args)), NIL)),
+                      cons(cons(intern("quote"), cons(check_symbol(car(current_expr)), NIL)),
                            cons(cons(intern("macro!"),
-                                     cons(cons(intern("fn"), cdr(args)), NIL)), NIL)));
+                                     cons(cons(intern("fn"), cdr(current_expr)), NIL)), NIL)));
 }
 
-static void special_do(ref_t func, ref_t args) {
+static void special_do(ref_t func) {
+  ref_t body = current_expr;
+  /* push the whole body onto the stack so it is all referenced while
+     we're evaluating all of the expressions in it */
+  push_expr();
   do {
-    push_expr();
-    current_expr = car(args);
+    current_expr = car(body), body = cdr(body);
     eval();
-    pop_expr();
-    args = cdr(args);
-  } while (!isnil(args));
+  } while (!isnil(body));
+  pop_expr();
 }
 
-static void special_fn(ref_t func, ref_t args) {
-  ref_t formals = car(args);
+static void special_fn(ref_t func) {
+  ref_t formals = car(current_expr);
   size_t arity = 0;
   bool hasrest = NO;
   ref_t rest = intern("&");
@@ -145,30 +149,29 @@ static void special_fn(ref_t func, ref_t args) {
     arity++;
     formals = cdr(formals);
   }
-  current_expr = function(fn_fn, cons(current_closure, args), arity, hasrest);
+  current_expr = function(fn_fn, cons(current_closure, current_expr), arity, hasrest);
 }
 
-static void special_if(ref_t func, ref_t args) {
-  size_t len = length(args);
+static void special_if(ref_t func) {
+  size_t len = length(current_expr);
+  ref_t branches;
   if (len < 2 || 3 < len)
     argument_error(len);
-  /* We're pushing the entire IF form onto the stack because we want
-     to make sure that the if-branch and else-branch are still
-     referenced from SOMETHING if a GC happens inside this call to
-     eval. */
+  /* Push the (cond if-branch else-branch) so that the branches remain
+     referenced during the evaluation of the condition */
   push_expr();
-  current_expr = car(args);
+  branches = cdr(current_expr), current_expr = car(current_expr);
   eval();
-  pop_expr();
   if (current_expr == NIL)
-    current_expr = caddr(args);
+    current_expr = cadr(branches);
   else
-    current_expr = cadr(args);
+    current_expr = car(branches);
+  pop_expr();
   eval();
 }
 
-static void special_quote(ref_t func, ref_t args) {
-  current_expr = car(args);
+static void special_quote(ref_t func) {
+  current_expr = car(current_expr);
 }
 
 static inline void intern_function(const char *name, fn_t impl, size_t arity, bool rest) {

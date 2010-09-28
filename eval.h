@@ -4,7 +4,7 @@
 #include "env.h"
 #include "types.h"
 
-void apply(ref_t func, ref_t args);
+void apply(ref_t func);
 void eval();
 void macroexpand1();
 void macroexpand();
