@@ -14,9 +14,9 @@ static void fn_add() {
 }
 
 static void fn_apply() {
-  ref_t func1 = check_function(car(current_expr));
+  ref_t func = check_function(car(current_expr));
   current_expr = check_list(cadr(current_expr));
-  apply(func1);
+  apply(func);
 }
 
 static void fn_car() {
@@ -60,8 +60,8 @@ static void fn_fn() {
 }
 
 static void fn_function() {
-  ref_t func1 = car(current_expr);
-  current_expr = issymbol(func1) ? get_function(func1) : check_function(func1);
+  ref_t func = car(current_expr);
+  current_expr = issymbol(func) ? get_function(func) : check_function(func);
 }
 
 static void fn_list() {
