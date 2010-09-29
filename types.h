@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <inttypes.h>
+#include <sys/types.h>
 
 typedef unsigned long ref_t;
 typedef void (*fn_t)();

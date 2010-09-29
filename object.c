@@ -6,43 +6,14 @@
 #include "gc.h"
 #include "object.h"
 
-/**
- * Objects are allocated on double-word boundaries. This gives us some
- * of the low-order bits in the pointer that we can use to tag
- * pointers, effectively multiplying the space of things we can
- * represent by eight.
- *
- * Lowtags:
- * x00 - Fixnum (this eats up two tags, but that gives us 2^30 fixnums)
- * x10 - Other Immediate (e.g. nil, true)
- * xx1 - Pointer
- * 001 -   UNUSED
- * 011 -   List Pointer
- * 101 -   Function Pointer
- * 111 -   Other Pointer
- *
- * Other Immediates:
- * 000000010 - 0x02 - nil
- * 000000110 - 0x06 - true
- * 111111110 - 0xFE - UNBOUND (note: this cannot be produced by read)
- *
- *
- * Object Tags:
+/* Object Tags:
  * 000000001 - 0x01 - string
  * 000000011 - 0x03 - symbol
  * 000000100 - 0x04 - lamdba
  * 000000101 - 0x05 - macro
  * 000000110 - 0x06 - special form
- *
  */
 
-
-/* Lowtags */
-#define LIST_POINTER_TAG 3
-#define FUNCTION_POINTER_TAG 5
-#define OTHER_POINTER_TAG 7
-
-/* Object Tags */
 #define STRING_TAG 1
 #define SYMBOL_TAG 3
 #define LAMBDA_TAG 4
@@ -90,7 +61,7 @@ struct symbol {
  **/
 
 bool iscons(ref_t obj) {
-  return (obj & LOWTAG_MASK) == LIST_POINTER_TAG;
+  return LOWTAG(obj) == LIST_POINTER_TAG;
 }
 
 bool isfixnum(ref_t obj) {
@@ -98,7 +69,7 @@ bool isfixnum(ref_t obj) {
 }
 
 bool isfunction(ref_t obj) {
-  return (obj & LOWTAG_MASK) == FUNCTION_POINTER_TAG;
+  return LOWTAG(obj) == FUNCTION_POINTER_TAG;
 }
 
 bool isinteger(ref_t obj) {
@@ -126,13 +97,13 @@ bool isspecialform(ref_t obj) {
 }
 
 bool isstring(ref_t obj) {
-  if ((obj & LOWTAG_MASK) != OTHER_POINTER_TAG)
+  if (LOWTAG(obj) != OTHER_POINTER_TAG)
     return NO;
   return STRING(obj)->tag == STRING_TAG;
 }
 
 bool issymbol(ref_t obj) {
-  if ((obj & LOWTAG_MASK) != OTHER_POINTER_TAG)
+  if (LOWTAG(obj) != OTHER_POINTER_TAG)
     return NO;
   return SYMBOL(obj)->tag == SYMBOL_TAG;
 }
@@ -177,7 +148,7 @@ inline ref_t make_ref(ref_t ptr, uint8_t lowtag) {
 }
 
 ref_t cons(ref_t car, ref_t cdr) {
-  ref_t obj = gc_alloc(sizeof(struct cons)) + LIST_POINTER_TAG;
+  ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_TAG);
   CONS(obj)->car = car, CONS(obj)->cdr = cdr;
   return obj;
 }
@@ -193,7 +164,7 @@ ref_t integer(int i) {
 }
 
 ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest, bool builtin) {
-  ref_t obj = gc_alloc(sizeof(struct function)) + FUNCTION_POINTER_TAG;
+  ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_TAG);
   FN(obj)->tag = LAMBDA_TAG;
   FN(obj)->fn = fn;
   FN(obj)->lambda = lambda;
@@ -204,14 +175,14 @@ ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest, bool builtin) {
 }
 
 ref_t string(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str)) + OTHER_POINTER_TAG;
+  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str), OTHER_POINTER_TAG);
   STRING(obj)->tag = STRING_TAG;
   strcpy(STRING(obj)->bytes, str);
   return obj;
 }
 
 ref_t symbol(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str)) + OTHER_POINTER_TAG;
+  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str), OTHER_POINTER_TAG);
   SYMBOL(obj)->tag = SYMBOL_TAG;
   SYMBOL(obj)->fvalue = SYMBOL(obj)->value = UNBOUND;
   strcpy(SYMBOL(obj)->name, str);

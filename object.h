@@ -4,6 +4,12 @@
 #include <sys/types.h>
 #include "types.h"
 
+/* Special Immediate Values:
+ * 000000010 - 0x02 - nil
+ * 000000110 - 0x06 - true
+ * 111111110 - 0xFE - UNBOUND (note: this cannot be produced by read)
+ */
+
 #define NIL     0x02
 #define TRUE    0x06
 #define UNBOUND 0xFE
