@@ -9,14 +9,14 @@
 /* Object Tags:
  * 000000001 - 0x01 - string
  * 000000011 - 0x03 - symbol
- * 000000100 - 0x04 - lamdba
+ * 000000100 - 0x04 - function
  * 000000101 - 0x05 - macro
  * 000000110 - 0x06 - special form
  */
 
 #define STRING_TAG 1
 #define SYMBOL_TAG 3
-#define LAMBDA_TAG 4
+#define FUNCTION_TAG 4
 #define MACRO_TAG 5
 #define SPECIAL_FORM_TAG 6
 
@@ -32,10 +32,11 @@ struct cons {
 struct function {
   uint8_t tag;
   fn_t fn;
-  ref_t lambda;
+  ref_t formals;
+  ref_t body;
+  ref_t closure;
   size_t arity;
   bool rest;
-  bool builtin;
 };
 #define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
 
@@ -163,15 +164,24 @@ ref_t integer(int i) {
   return NIL;
 }
 
-ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest, bool builtin) {
+static ref_t alloc_function(fn_t fn, ref_t formals, ref_t body, ref_t closure, size_t arity, bool rest) {
   ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_TAG);
-  FN(obj)->tag = LAMBDA_TAG;
+  FN(obj)->tag = FUNCTION_TAG;
   FN(obj)->fn = fn;
-  FN(obj)->lambda = lambda;
+  FN(obj)->formals = formals;
+  FN(obj)->body = body;
+  FN(obj)->closure = closure;
   FN(obj)->arity = arity;
   FN(obj)->rest = rest;
-  FN(obj)->builtin = builtin;
   return obj;
+}
+
+ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest) {
+  return alloc_function(NULL, formals, body, closure, arity, rest);
+}
+
+ref_t builtin(ref_t formals, fn_t body, int arity, bool rest) {
+  return alloc_function(body, formals, NIL, NIL, arity, rest);
 }
 
 ref_t string(const char *str) {
@@ -283,19 +293,29 @@ static int list_length(ref_t obj) {
  ** Functions
  **/
 
+ref_t getbody(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->body;
+}
+
+ref_t getclosure(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->closure;
+}
+
 fn_t getfn(ref_t obj) {
   assert(isfunction(obj));
   return FN(obj)->fn;
 }
 
-ref_t getlambda(ref_t obj) {
-  assert(isfunction(obj));
-  return FN(obj)->lambda;
-}
-
 size_t getarity(ref_t obj) {
   assert(isfunction(obj));
   return FN(obj)->arity;
+}
+
+ref_t getformals(ref_t obj) {
+  assert(isfunction(obj));
+  return FN(obj)->formals;
 }
 
 bool hasrest(ref_t obj) {
@@ -305,7 +325,7 @@ bool hasrest(ref_t obj) {
 
 bool isbuiltin(ref_t obj) {
   assert(isfunction(obj));
-  return FN(obj)->builtin;
+  return FN(obj)->fn != NULL;
 }
 
 ref_t set_type_macro(ref_t obj) {

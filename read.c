@@ -10,17 +10,15 @@
 #include "error.h"
 
 static int skipspace(FILE *in) {
-  int ch = getc(in);
-  while (isspace(ch))
+  int ch;
+  do {
     ch = getc(in);
+    if (ch == ';') {
+      while (ch != '\n')
+        ch = getc(in);
+    }
+  } while(isspace(ch));
   return ch;
-}
-
-static int skipcomment(FILE *in) {
-  int ch = getc(in);
-  while (ch != '\n')
-    ch = getc(in);
-  return skipspace(in);
 }
 
 static ref_t readstring(FILE *in) {
@@ -114,8 +112,6 @@ static inline ref_t readlist(FILE *in) {
 }
 
 static ref_t readnext(int ch, FILE *in) {
-  if (ch == ';')
-    return readnext(skipcomment(in), in);
   if (ch == '(')
     return readlist(in);
   else if (ch == '"')

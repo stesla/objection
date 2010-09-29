@@ -10,9 +10,9 @@
 
   ;; a symbol can have both a value and a function-value
   (do
-    (set-value 'foo 6)
-    (set-function 'foo (fn (x y) (+ x (* x y))))
-    (foo foo 7))
+    (set-value 'ho 2)
+    (set-function 'ho (function '*))
+    (ho ho ho))
 
   ;; Sup, dawg? I heard you like functions...
   (apply (fn (x) x) '(:foo))
@@ -23,17 +23,8 @@
   (do
     (defmacro foo (x y) (bar x y))
     (defn bar (x y) (+ x y))
-    (foo 6 7))
-
-  ;; macro-expansion functions
-  (do
-    (defmacro alpha (x y) (list 'beta x y))
-    (defmacro beta (x y) (list 'gamma x y))
-    (list
-     (macroexpand '(alpha 1 2))
-     (macroexpand-1 '(alpha 1 2)))))
-
+    (foo 6 7)))
 
 RESULT
 
-(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 48 :foo :bar 3 13 ((gamma 1 2) (beta 1 2)))
+(2 4 6 8 nil true (1 . 2) (1 2 3) 1 2 4 :foo :bar 3 13)

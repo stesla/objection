@@ -37,13 +37,16 @@ ref_t check_symbol(ref_t obj);
 /* Constructors */
 ref_t cons(ref_t car, ref_t cdr);
 ref_t integer(int i);
-ref_t function(fn_t fn, ref_t lambda, size_t arity, bool rest, bool builtin);
+ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest);
+ref_t builtin(ref_t formals, fn_t body, int arity, bool rest);
 ref_t string(const char *str);
 ref_t symbol(const char *str);
 
 /* Functions */
+ref_t getbody(ref_t obj);
+ref_t getclosure(ref_t obj);
 fn_t getfn(ref_t obj);
-ref_t getlambda(ref_t obj);
+ref_t getformals(ref_t obj);
 size_t getarity(ref_t obj);
 bool hasrest(ref_t obj);
 bool isbuiltin(ref_t obj);

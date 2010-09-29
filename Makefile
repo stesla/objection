@@ -1,6 +1,7 @@
 CC=gcc
 
-OBJS=main.o alloc.o object.o print.o read.o error.o buffer.o eval.o env.o builtins.o gc.o
+OBJS=main.o alloc.o object.o print.o read.o error.o buffer.o env.o \
+	builtins.o gc.o eval.o
 
 CFLAGS=-g -Wall
 

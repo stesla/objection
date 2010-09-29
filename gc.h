@@ -13,12 +13,13 @@
  * x00 - Fixnum (this eats up two tags, but that gives us 2^30 fixnums)
  * x10 - Other Immediate (e.g. nil, true)
  * xx1 - Pointer
- * 001 -   UNUSED
+ * 001 -   Continuation Pointer
  * 011 -   List Pointer
  * 101 -   Function Pointer
  * 111 -   Other Pointer
  */
 
+#define CONTINUATION_POINTER_TAG 1
 #define LIST_POINTER_TAG 3
 #define FUNCTION_POINTER_TAG 5
 #define OTHER_POINTER_TAG 7

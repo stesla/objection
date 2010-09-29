@@ -3,8 +3,8 @@
 #include <string.h>
 #include <getopt.h>
 #include "env.h"
-#include "error.h"
 #include "eval.h"
+#include "error.h"
 #include "builtins.h"
 #include "object.h"
 #include "read.h"
@@ -19,22 +19,21 @@ static void repl() {
   for (;;) {
     printf("> ");
     if (setjmp(error_loc) == 0) {
-      current_expr = readsexp(stdin);
+      expr = readsexp(stdin);
       eval();
-      print(current_expr);
+      print(expr);
     }
     else
       printf("ERROR: %s", the_error);
     puts("");
   }
 }
-
 static void do_it(const char *filename) {
   FILE *input = !strcmp("-", filename) ? stdin : fopen(filename, "r");
   if (setjmp(error_loc) == 0) {
-    current_expr = cons(intern("do"), readstream(input));
+    expr = cons(intern("do"), readstream(input));
     eval();
-    print(current_expr);
+    print(expr);
     puts("");
   } else {
     fprintf(stderr, "ERROR: %s", the_error);
@@ -50,7 +49,7 @@ int main(int argc, char **argv) {
   static struct option longopts[] = {
     {"do", optional_argument, NULL, 'd'}
   };
-  while ((ch = getopt_long(argc, argv, "d:-", longopts, NULL)) != -1) {
+  while ((ch = getopt_long(argc, argv, "cd:-", longopts, NULL)) != -1) {
     switch(ch) {
     case 'd':
       do_mode = YES;
@@ -62,6 +61,7 @@ int main(int argc, char **argv) {
   }
 
   init_builtins();
+  init_eval();
 
   if (do_mode)
     do_it(input_file);
