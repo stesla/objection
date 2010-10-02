@@ -1,7 +1,7 @@
 #!/bin/bash
 
-for test in ${@:-*.test}; do
-    printf "%s..." $(basename $test .test)
+for test in ${@:-*.test.ol}; do
+    printf "%s..." $(basename $test .test.ol)
     expected=$(sed -e '1,/RESULT/d' -e '/^$/d'< $test)
     actual=$(sed -e '/RESULT/,$d' -e '/^$/d' < $test | ${program:=$PWD/object -d -} 2>&1)
     if [ $? -ne 0 ]; then
