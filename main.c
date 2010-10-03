@@ -2,13 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
+#include "builtins.h"
 #include "env.h"
 #include "eval.h"
 #include "error.h"
-#include "builtins.h"
+#include "gc.h"
 #include "object.h"
-#include "read.h"
 #include "print.h"
+#include "read.h"
 
 static void usage() {
   /* TODO */
@@ -60,6 +61,7 @@ int main(int argc, char **argv) {
     }
   }
 
+  gc_init();
   init_builtins();
   init_eval();
 

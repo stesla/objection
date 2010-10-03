@@ -28,5 +28,6 @@
 #define LOWTAG(ref) ((ref) & LOWTAG_MASK)
 
 ref_t gc_alloc(size_t bytes, uint8_t lowtag);
+void gc_init();
 
 #endif
