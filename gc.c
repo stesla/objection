@@ -74,7 +74,6 @@ static ref_t gc_copy(ref_t old) {
   void *from = (void *) (old - lowtag), *to;
   size_t size;
   to = gc_do_alloc(gc_sizeof(from));
-  printf("gc_copy: %p -> %p", from, to);
   memcpy(from, to, size);
   return ((ref_t) to) + lowtag;
 }
@@ -182,7 +181,6 @@ static void gc_collect(size_t to_size) {
   page_size = to_size;
   gc_init();
   gc_hash_init();
-  printf("gc_collect: %p -> %p\n", from, memory);
   unscanned = next;
   cont = gc_lookup(cont);
   expr = gc_lookup(expr);

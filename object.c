@@ -94,10 +94,6 @@ ref_t check_symbol(ref_t obj) {
  ** Constructors
  **/
 
-inline ref_t make_ref(ref_t ptr, uint8_t lowtag) {
-  return ptr + lowtag;
-}
-
 ref_t cons(ref_t car, ref_t cdr) {
   ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
   CONS(obj)->tag = CONS_TAG;

@@ -28,6 +28,7 @@ static inline void init_vals(ref_t obj) {
 
 static inline ref_t continuation(cont_t fn, ref_t saved_cont) {
   ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
+  C(obj)->tag = CONTINUATION_TAG;
   C(obj)->fn = fn;
   C(obj)->expand = NO;
   C(obj)->saved_cont = saved_cont;
