@@ -7,7 +7,7 @@
 
 static void *memory;
 static ref_t next;
-static size_t page_size = 26*1024, remaining;
+static size_t page_size = 32*1024, remaining;
 
 ref_t gc_alloc(size_t bytes, uint8_t lowtag) {
   ref_t result = next + lowtag;

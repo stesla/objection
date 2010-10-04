@@ -104,6 +104,7 @@ inline ref_t make_ref(ref_t ptr, uint8_t lowtag) {
 
 ref_t cons(ref_t car, ref_t cdr) {
   ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
+  CONS(obj)->tag = CONS_TAG;
   CONS(obj)->car = car, CONS(obj)->cdr = cdr;
   return obj;
 }

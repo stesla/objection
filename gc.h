@@ -21,21 +21,17 @@
 
 #define LOWTAG(ref) ((ref) & LOWTAG_MASK)
 
+/* lowtags */
 #define CONTINUATION_POINTER_LOWTAG 1
 #define LIST_POINTER_LOWTAG 3
 #define FUNCTION_POINTER_LOWTAG 5
 #define OTHER_POINTER_LOWTAG 7
 #define LOWTAG_MASK 7
 
-/* Object Tags:
- * 000000001 - 0x01 - string
- * 000000011 - 0x03 - symbol
- * 000000100 - 0x04 - function
- * 000000101 - 0x05 - macro
- * 000000110 - 0x06 - special form
- */
-
-#define STRING_TAG 1
+/* object tags */
+#define CONS_TAG 0
+#define CONTINUATION_TAG 1
+#define STRING_TAG 2
 #define SYMBOL_TAG 3
 #define FUNCTION_TAG 4
 #define MACRO_TAG 5
@@ -45,11 +41,17 @@
  ** Types
  **/
 
+struct lispobj {
+  uint8_t tag;
+};
+
 struct cons {
+  uint8_t tag;
   ref_t car, cdr;
 };
 
 struct continuation {
+  uint8_t tag;
   cont_t fn;
   bool expand;
   ref_t saved_cont;
