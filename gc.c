@@ -5,6 +5,10 @@
 
 #define ALIGNED_SIZE(size) (((size) + LOWTAG_MASK) & ~LOWTAG_MASK)
 
+ref_t cont = NIL;
+ref_t expr = NIL;
+ref_t symbols = NIL;
+
 static void *memory;
 static ref_t next;
 static size_t page_size = 32*1024, remaining;

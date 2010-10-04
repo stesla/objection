@@ -37,10 +37,6 @@
 #define MACRO_TAG 5
 #define SPECIAL_FORM_TAG 6
 
-/**
- ** Types
- **/
-
 struct lispobj {
   uint8_t tag;
 };
@@ -83,6 +79,10 @@ struct symbol {
   /* must be last */
   char name[1];
 };
+
+ref_t cont; /* the current continuation */
+ref_t expr; /* the current expression */
+ref_t symbols;
 
 ref_t gc_alloc(size_t bytes, uint8_t lowtag);
 void gc_init();

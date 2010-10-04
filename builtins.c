@@ -1,7 +1,8 @@
-#include "env.h"
-#include "eval.h"
-#include "error.h"
 #include "builtins.h"
+#include "env.h"
+#include "error.h"
+#include "eval.h"
+#include "gc.h"
 #include "object.h"
 
 /* lisp objects for formal parameters */

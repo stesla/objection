@@ -9,9 +9,6 @@
 #include "print.h"
 #include <stdio.h>
 
-ref_t cont = NIL;
-ref_t expr = NIL;
-
 /* symbols we use in the code below, they are interned by init_eval */
 static ref_t sym_amp, sym_args, sym_do, sym_fn, sym_if, sym_quote;
 
