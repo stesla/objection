@@ -15,27 +15,10 @@ ref_t expr = NIL;
 /* symbols we use in the code below, they are interned by init_eval */
 static ref_t sym_amp, sym_args, sym_do, sym_fn, sym_if, sym_quote;
 
-typedef enum {
-  ACTION_DONE,
-  ACTION_EVAL,
-  ACTION_APPLY_CONT
-} action_t;
-
-typedef action_t (*cont_t)();
-
-#define VALS 3
-struct continuation {
-  cont_t fn;
-  bool expand;
-  ref_t saved_cont;
-  ref_t closure;
-  ref_t val[VALS];
-};
-#define C(obj) ((struct continuation *) ((obj) - CONTINUATION_POINTER_TAG))
-
+#define C(obj) ((struct continuation *) ((obj) - CONTINUATION_POINTER_LOWTAG))
 
 static inline bool iscontinuation(ref_t obj) {
-  return LOWTAG(obj) == CONTINUATION_POINTER_TAG;
+  return LOWTAG(obj) == CONTINUATION_POINTER_LOWTAG;
 }
 
 static inline void pop_cont() {
@@ -43,13 +26,11 @@ static inline void pop_cont() {
 }
 
 static inline void init_vals(ref_t obj) {
-  int i;
-  for (i = 0; i < VALS; i++)
-    C(obj)->val[i] = NIL;
+  C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
 }
 
 static inline ref_t continuation(cont_t fn, ref_t saved_cont) {
-  ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
   C(obj)->fn = fn;
   C(obj)->expand = NO;
   C(obj)->saved_cont = saved_cont;
@@ -92,11 +73,11 @@ static action_t cont_quote();
 static action_t cont_symbol();
 
 static inline void eval_apply(ref_t obj) {
-  C(cont)->fn = cont_apply, C(cont)->val[0] = obj;
+  C(cont)->fn = cont_apply, C(cont)->val = obj;
 }
 
 static inline void eval_do(ref_t obj) {
-  C(cont)->fn = cont_do, C(cont)->val[0] = obj;
+  C(cont)->fn = cont_do, C(cont)->val = obj;
 }
 
 static inline action_t eval_expr(ref_t obj) {
@@ -106,7 +87,7 @@ static inline action_t eval_expr(ref_t obj) {
 }
 
 static action_t cont_apply() {
-  ref_t func = C(cont)->val[0];
+  ref_t func = C(cont)->val;
   size_t len = length(expr), arity = getarity(func);
   if (hasrest(func)) {
     if (len < arity)
@@ -116,28 +97,28 @@ static action_t cont_apply() {
       argument_error(len);
   }
   init_vals(cont);
-  C(cont)->fn = cont_apply_arg, C(cont)->val[0] = func,
-    C(cont)->val[1] = cdr(expr);
+  C(cont)->fn = cont_apply_arg, C(cont)->val = func,
+    C(cont)->args1 = cdr(expr);
   return eval_expr(car(expr));
 }
 
 static action_t cont_apply_arg() {
-  ref_t first = car(C(cont)->val[1]), rest = cdr(C(cont)->val[1]);
-  C(cont)->val[2] = cons(expr, C(cont)->val[2]);
-  if (isnil(C(cont)->val[1])) {
-    ref_t args = C(cont)->val[2];
+  ref_t first = car(C(cont)->args1), rest = cdr(C(cont)->args1);
+  C(cont)->args2 = cons(expr, C(cont)->args2);
+  if (isnil(C(cont)->args1)) {
+    ref_t args = C(cont)->args2;
     expr = NIL;
     for(; !isnil(args); args = cdr(args))
       expr = cons(car(args), expr);
     C(cont)->fn = cont_apply_apply;
     return ACTION_APPLY_CONT;
   }
-  C(cont)->val[1] = rest;
+  C(cont)->args1 = rest;
   return eval_expr(first);
 }
 
 static action_t cont_apply_apply() {
-  ref_t func = C(cont)->val[0], args = expr;
+  ref_t func = C(cont)->val, args = expr;
   ref_t formals = getformals(func);
   size_t arity = getarity(func);
   C(cont)->closure = getclosure(func);
@@ -156,12 +137,12 @@ static action_t cont_apply_apply() {
 }
 
 static action_t cont_do() {
-  ref_t body = C(cont)->val[0];
+  ref_t body = C(cont)->val;
   if (isnil(body)) {
     pop_cont();
     return ACTION_APPLY_CONT;
   }
-  C(cont)->val[0] = cdr(body);
+  C(cont)->val = cdr(body);
   return eval_expr(car(body));
 }
 
@@ -204,12 +185,12 @@ static action_t cont_if() {
   size_t len = length(expr);
   if (len < 2 || 3 < len)
     argument_error(len);
-  C(cont)->fn = cont_if_branches, C(cont)->val[0] = cdr(expr);
+  C(cont)->fn = cont_if_branches, C(cont)->val = cdr(expr);
   return eval_expr(car(expr));
 }
 
 static action_t cont_if_branches() {
-  ref_t branches = C(cont)->val[0];
+  ref_t branches = C(cont)->val;
   pop_cont();
   return eval_expr(isnil(expr) ? cadr(branches) : car(branches));
 }
@@ -231,12 +212,12 @@ static action_t cont_list() {
 }
 
 static action_t cont_macroexpand() {
-  C(cont)->expand = (expr != C(cont)->val[0]);
+  C(cont)->expand = (expr != C(cont)->val);
   if(!C(cont)->expand) {
     pop_cont();
     return ACTION_APPLY_CONT;
   }
-  C(cont)->val[0] = expr;
+  C(cont)->val = expr;
   cont = continuation(cont_macroexpand1, cont);
   return ACTION_APPLY_CONT;
 }
@@ -247,7 +228,7 @@ static action_t cont_macroexpand1() {
     if (has_function(symbol)) {
       ref_t func = get_function(symbol);
       if (ismacro(func)) {
-        C(cont)->fn = cont_apply_apply, C(cont)->val[0] = func;
+        C(cont)->fn = cont_apply_apply, C(cont)->val = func;
         expr = cdr(expr);
         return ACTION_APPLY_CONT;
       }

@@ -19,13 +19,68 @@
  * 111 -   Other Pointer
  */
 
-#define CONTINUATION_POINTER_TAG 1
-#define LIST_POINTER_TAG 3
-#define FUNCTION_POINTER_TAG 5
-#define OTHER_POINTER_TAG 7
+#define LOWTAG(ref) ((ref) & LOWTAG_MASK)
+
+#define CONTINUATION_POINTER_LOWTAG 1
+#define LIST_POINTER_LOWTAG 3
+#define FUNCTION_POINTER_LOWTAG 5
+#define OTHER_POINTER_LOWTAG 7
 #define LOWTAG_MASK 7
 
-#define LOWTAG(ref) ((ref) & LOWTAG_MASK)
+/* Object Tags:
+ * 000000001 - 0x01 - string
+ * 000000011 - 0x03 - symbol
+ * 000000100 - 0x04 - function
+ * 000000101 - 0x05 - macro
+ * 000000110 - 0x06 - special form
+ */
+
+#define STRING_TAG 1
+#define SYMBOL_TAG 3
+#define FUNCTION_TAG 4
+#define MACRO_TAG 5
+#define SPECIAL_FORM_TAG 6
+
+/**
+ ** Types
+ **/
+
+struct cons {
+  ref_t car, cdr;
+};
+
+struct continuation {
+  cont_t fn;
+  bool expand;
+  ref_t saved_cont;
+  ref_t closure;
+  ref_t val;
+  ref_t args1, args2;
+};
+
+struct function {
+  uint8_t tag;
+  fn_t fn;
+  ref_t formals;
+  ref_t body;
+  ref_t closure;
+  size_t arity;
+  bool rest;
+};
+
+struct string {
+  uint8_t tag;
+  /* must be last */
+  char bytes[1];
+};
+
+struct symbol {
+  uint8_t tag;
+  ref_t value;
+  ref_t fvalue;
+  /* must be last */
+  char name[1];
+};
 
 ref_t gc_alloc(size_t bytes, uint8_t lowtag);
 void gc_init();

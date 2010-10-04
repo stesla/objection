@@ -6,63 +6,17 @@
 #include "gc.h"
 #include "object.h"
 
-/* Object Tags:
- * 000000001 - 0x01 - string
- * 000000011 - 0x03 - symbol
- * 000000100 - 0x04 - function
- * 000000101 - 0x05 - macro
- * 000000110 - 0x06 - special form
- */
-
-#define STRING_TAG 1
-#define SYMBOL_TAG 3
-#define FUNCTION_TAG 4
-#define MACRO_TAG 5
-#define SPECIAL_FORM_TAG 6
-
-/**
- ** Types
- **/
-
-struct cons {
-  ref_t car, cdr;
-};
-#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_TAG))
-
-struct function {
-  uint8_t tag;
-  fn_t fn;
-  ref_t formals;
-  ref_t body;
-  ref_t closure;
-  size_t arity;
-  bool rest;
-};
-#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_TAG))
-
-struct string {
-  uint8_t tag;
-  /* must be last */
-  char bytes[1];
-};
-#define STRING(obj) ((struct string *) ((obj) - OTHER_POINTER_TAG))
-
-struct symbol {
-  uint8_t tag;
-  ref_t value;
-  ref_t fvalue;
-  /* must be last */
-  char name[1];
-};
-#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_TAG))
-
+#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_LOWTAG))
+#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_LOWTAG))
+#define STRING(obj) ((struct string *) ((obj) - OTHER_POINTER_LOWTAG))
+#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_LOWTAG))
 
 /**
  ** Type Predicates
  **/
 
 bool iscons(ref_t obj) {
-  return LOWTAG(obj) == LIST_POINTER_TAG;
+  return LOWTAG(obj) == LIST_POINTER_LOWTAG;
 }
 
 bool isfixnum(ref_t obj) {
@@ -70,7 +24,7 @@ bool isfixnum(ref_t obj) {
 }
 
 bool isfunction(ref_t obj) {
-  return LOWTAG(obj) == FUNCTION_POINTER_TAG;
+  return LOWTAG(obj) == FUNCTION_POINTER_LOWTAG;
 }
 
 bool isinteger(ref_t obj) {
@@ -98,13 +52,13 @@ bool isspecialform(ref_t obj) {
 }
 
 bool isstring(ref_t obj) {
-  if (LOWTAG(obj) != OTHER_POINTER_TAG)
+  if (LOWTAG(obj) != OTHER_POINTER_LOWTAG)
     return NO;
   return STRING(obj)->tag == STRING_TAG;
 }
 
 bool issymbol(ref_t obj) {
-  if (LOWTAG(obj) != OTHER_POINTER_TAG)
+  if (LOWTAG(obj) != OTHER_POINTER_LOWTAG)
     return NO;
   return SYMBOL(obj)->tag == SYMBOL_TAG;
 }
@@ -149,7 +103,7 @@ inline ref_t make_ref(ref_t ptr, uint8_t lowtag) {
 }
 
 ref_t cons(ref_t car, ref_t cdr) {
-  ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
   CONS(obj)->car = car, CONS(obj)->cdr = cdr;
   return obj;
 }
@@ -165,7 +119,7 @@ ref_t integer(int i) {
 }
 
 static ref_t alloc_function(fn_t fn, ref_t formals, ref_t body, ref_t closure, size_t arity, bool rest) {
-  ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_LOWTAG);
   FN(obj)->tag = FUNCTION_TAG;
   FN(obj)->fn = fn;
   FN(obj)->formals = formals;
@@ -185,14 +139,14 @@ ref_t builtin(ref_t formals, fn_t body, int arity, bool rest) {
 }
 
 ref_t string(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str), OTHER_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str), OTHER_POINTER_LOWTAG);
   STRING(obj)->tag = STRING_TAG;
   strcpy(STRING(obj)->bytes, str);
   return obj;
 }
 
 ref_t symbol(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str), OTHER_POINTER_TAG);
+  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str), OTHER_POINTER_LOWTAG);
   SYMBOL(obj)->tag = SYMBOL_TAG;
   SYMBOL(obj)->fvalue = SYMBOL(obj)->value = UNBOUND;
   strcpy(SYMBOL(obj)->name, str);
@@ -393,12 +347,12 @@ int length(ref_t obj) {
 
 static const char *string_to_str(ref_t obj) {
   assert(isstring(obj));
-  return ((struct string *) (obj - OTHER_POINTER_TAG))->bytes;
+  return ((struct string *) (obj - OTHER_POINTER_LOWTAG))->bytes;
 }
 
 static const char *symbol_to_str(ref_t obj) {
   assert(issymbol(obj));
-  return ((struct symbol *) (obj - OTHER_POINTER_TAG))->name;
+  return ((struct symbol *) (obj - OTHER_POINTER_LOWTAG))->name;
 }
 
 const char *strvalue(ref_t obj) {
