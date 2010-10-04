@@ -87,4 +87,6 @@ ref_t symbols;
 ref_t gc_alloc(size_t bytes, uint8_t lowtag);
 void gc_init();
 
+bool ispointer(ref_t obj);
+
 #endif

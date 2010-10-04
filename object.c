@@ -43,10 +43,6 @@ bool isnil(ref_t obj) {
   return obj == NIL;
 }
 
-bool ispointer(ref_t obj) {
-  return obj & 1;
-}
-
 bool isspecialform(ref_t obj) {
   return isfunction(obj) && FN(obj)->tag == SPECIAL_FORM_TAG;
 }

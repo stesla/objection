@@ -12,7 +12,6 @@ bool isinteger(ref_t obj);
 bool islist(ref_t obj);
 bool ismacro(ref_t obj);
 bool isnil(ref_t obj);
-bool ispointer(ref_t obj);
 bool isspecialform(ref_t obj);
 bool isstring(ref_t obj);
 bool issymbol(ref_t obj);
