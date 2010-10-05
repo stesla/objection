@@ -1,4 +1,5 @@
 #include "error.h"
+#include "eval.h"
 #include "object.h"
 #include "print.h"
 
@@ -37,6 +38,8 @@ void print(ref_t obj) {
   }
   else if (isfunction(obj))
     printf("<fn arity:%i rest:%s>", (int) getarity(obj), hasrest(obj) ? "YES" : "NO");
+  else if (iscontinuation(obj))
+    printf("<continuation>");
   else
     error("cannot print object");
 }

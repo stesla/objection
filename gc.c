@@ -72,9 +72,9 @@ static size_t gc_sizeof(void *obj) {
 static ref_t gc_copy(ref_t old) {
   uint8_t lowtag = old & LOWTAG_MASK;
   void *from = (void *) (old - lowtag), *to;
-  size_t size;
-  to = gc_do_alloc(gc_sizeof(from));
-  memcpy(from, to, size);
+  size_t size = gc_sizeof(from);
+  to = gc_do_alloc(size);
+  memcpy(to, from, size);
   return ((ref_t) to) + lowtag;
 }
 
@@ -148,6 +148,7 @@ static ref_t gc_hash_get(ref_t old) {
   while (cur != NULL) {
     if (cur->old == old)
       return cur->new;
+    cur = cur->next;
   }
   return UNBOUND;
 }

@@ -14,7 +14,7 @@ static ref_t sym_amp, sym_args, sym_do, sym_fn, sym_if, sym_quote;
 
 #define C(obj) ((struct continuation *) ((obj) - CONTINUATION_POINTER_LOWTAG))
 
-static inline bool iscontinuation(ref_t obj) {
+inline bool iscontinuation(ref_t obj) {
   return LOWTAG(obj) == CONTINUATION_POINTER_LOWTAG;
 }
 

@@ -22,20 +22,24 @@
 #define LOWTAG(ref) ((ref) & LOWTAG_MASK)
 
 /* lowtags */
-#define CONTINUATION_POINTER_LOWTAG 1
-#define LIST_POINTER_LOWTAG 3
-#define FUNCTION_POINTER_LOWTAG 5
-#define OTHER_POINTER_LOWTAG 7
 #define LOWTAG_MASK 7
+enum {
+  CONTINUATION_POINTER_LOWTAG = 1,
+  LIST_POINTER_LOWTAG = 3,
+  FUNCTION_POINTER_LOWTAG = 5,
+  OTHER_POINTER_LOWTAG = 7
+};
 
 /* object tags */
-#define CONS_TAG 0
-#define CONTINUATION_TAG 1
-#define STRING_TAG 2
-#define SYMBOL_TAG 3
-#define FUNCTION_TAG 4
-#define MACRO_TAG 5
-#define SPECIAL_FORM_TAG 6
+enum {
+  CONS_TAG = 1,
+  CONTINUATION_TAG = 2,
+  STRING_TAG = 3,
+  SYMBOL_TAG = 4,
+  FUNCTION_TAG = 5,
+  MACRO_TAG = 6,
+  SPECIAL_FORM_TAG = 7
+};
 
 struct lispobj {
   uint8_t tag;
