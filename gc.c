@@ -28,7 +28,6 @@ struct gc_ref {
 gc_ref **gc_hash;
 #define GC_HASH_SIZE 4099
 
-static ref_t gc_alloc(size_t bytes, uint8_t lowtag);
 static inline gc_ref *gc_ref_new(ref_t old, ref_t new);
 static void *gc_do_alloc(size_t bytes);
 static size_t gc_sizeof(void *obj);
@@ -41,7 +40,6 @@ static ref_t gc_hash_get(ref_t old);
 static void gc_hash_set(ref_t old, ref_t new);
 static ref_t gc_lookup(ref_t old);
 static void gc_collect(size_t to_size);
-
 
 static inline gc_ref *gc_ref_new(ref_t old, ref_t new) {
   gc_ref *result = safe_malloc(sizeof(gc_ref));
@@ -205,14 +203,14 @@ static void gc_collect(size_t to_size) {
   munmap(from, from_size);
 }
 
-static ref_t gc_alloc(size_t bytes, uint8_t lowtag) {
+static void *gc_alloc(size_t bytes) {
   bytes = ALIGNED_SIZE(bytes);
   if (bytes > remaining) {
     gc_collect(page_size);
     if (bytes > remaining)
       gc_collect(page_size * 2);
   }
-  return ((ref_t) gc_do_alloc(bytes)) + lowtag;
+  return gc_do_alloc(bytes);
 }
 
 void gc_init() {
@@ -224,25 +222,29 @@ bool ispointer(ref_t obj) {
   return obj & 1;
 }
 
+static ref_t make_ref(void *obj, uint8_t lowtag) {
+  return ((ref_t) obj) + lowtag;
+}
+
 ref_t cons(ref_t car, ref_t cdr) {
   gc_car = car, gc_cdr = cdr;
-  ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
-  CONS(obj)->tag = CONS_TAG;
-  CONS(obj)->car = gc_car, CONS(obj)->cdr = gc_cdr;
-  return obj;
+  struct cons *obj = gc_alloc(sizeof(struct cons));
+  obj->tag = CONS_TAG;
+  obj->car = gc_car, obj->cdr = gc_cdr;
+  return make_ref(obj, LIST_POINTER_LOWTAG);
 }
 
 static ref_t alloc_function(fn_t fn, ref_t formals, ref_t body, ref_t closure, size_t arity, bool rest) {
   gc_formals = formals, gc_body = body, gc_closure = closure;
-  ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_LOWTAG);
-  FN(obj)->tag = FUNCTION_TAG;
-  FN(obj)->fn = fn;
-  FN(obj)->formals = gc_formals;
-  FN(obj)->body = gc_body;
-  FN(obj)->closure = gc_closure;
-  FN(obj)->arity = arity;
-  FN(obj)->rest = rest;
-  return obj;
+  struct function *obj = gc_alloc(sizeof(struct function));
+  obj->tag = FUNCTION_TAG;
+  obj->fn = fn;
+  obj->formals = gc_formals;
+  obj->body = gc_body;
+  obj->closure = gc_closure;
+  obj->arity = arity;
+  obj->rest = rest;
+  return make_ref(obj, FUNCTION_POINTER_LOWTAG);
 }
 
 ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest) {
@@ -255,27 +257,27 @@ ref_t builtin(ref_t formals, fn_t body, int arity, bool rest) {
 
 ref_t continuation(cont_t fn, ref_t saved_cont) {
   gc_saved_cont = saved_cont;
-  ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
-  C(obj)->tag = CONTINUATION_TAG;
-  C(obj)->fn = fn;
-  C(obj)->expand = NO;
-  C(obj)->saved_cont = gc_saved_cont;
-  C(obj)->closure = (gc_saved_cont == NIL) ? NIL : C(gc_saved_cont)->closure;
-  C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
-  return obj;
+  struct continuation *obj = gc_alloc(sizeof(struct continuation));
+  obj->tag = CONTINUATION_TAG;
+  obj->fn = fn;
+  obj->expand = NO;
+  obj->saved_cont = gc_saved_cont;
+  obj->closure = (gc_saved_cont == NIL) ? NIL : C(gc_saved_cont)->closure;
+  obj->val = obj->args1 = obj->args2 = NIL;
+  return make_ref(obj, CONTINUATION_POINTER_LOWTAG);
 }
 
 ref_t string(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str), OTHER_POINTER_LOWTAG);
-  STRING(obj)->tag = STRING_TAG;
-  strcpy(STRING(obj)->bytes, str);
-  return obj;
+  struct string *obj = gc_alloc(sizeof(struct string) + strlen(str));
+  obj->tag = STRING_TAG;
+  strcpy(obj->bytes, str);
+  return make_ref(obj, OTHER_POINTER_LOWTAG);
 }
 
 ref_t symbol(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str), OTHER_POINTER_LOWTAG);
-  SYMBOL(obj)->tag = SYMBOL_TAG;
-  SYMBOL(obj)->fvalue = SYMBOL(obj)->value = UNBOUND;
-  strcpy(SYMBOL(obj)->name, str);
-  return obj;
+  struct symbol *obj = gc_alloc(sizeof(struct symbol) + strlen(str));
+  obj->tag = SYMBOL_TAG;
+  obj->fvalue = obj->value = UNBOUND;
+  strcpy(obj->name, str);
+  return make_ref(obj, OTHER_POINTER_LOWTAG);
 }
