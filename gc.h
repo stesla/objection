@@ -84,13 +84,25 @@ struct symbol {
   char name[1];
 };
 
+#define C(obj) ((struct continuation *) ((obj) - CONTINUATION_POINTER_LOWTAG))
+#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_LOWTAG))
+#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_LOWTAG))
+#define STRING(obj) ((struct string *) ((obj) - OTHER_POINTER_LOWTAG))
+#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_LOWTAG))
+
 ref_t cont; /* the current continuation */
 ref_t expr; /* the current expression */
 ref_t symbols;
 
-ref_t gc_alloc(size_t bytes, uint8_t lowtag);
 void gc_init();
 
 bool ispointer(ref_t obj);
+
+ref_t builtin(ref_t formals, fn_t body, int arity, bool rest);
+ref_t cons(ref_t car, ref_t cdr);
+ref_t continuation(cont_t fn, ref_t saved_cont);
+ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest);
+ref_t string(const char *str);
+ref_t symbol(const char *str);
 
 #endif

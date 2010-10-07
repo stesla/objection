@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "gc.h"
 #include "buffer.h"
 #include "object.h"
 #include "read.h"

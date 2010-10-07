@@ -12,25 +12,12 @@
 /* symbols we use in the code below, they are interned by init_eval */
 static ref_t sym_amp, sym_args, sym_do, sym_fn, sym_if, sym_quote;
 
-#define C(obj) ((struct continuation *) ((obj) - CONTINUATION_POINTER_LOWTAG))
-
 inline bool iscontinuation(ref_t obj) {
   return LOWTAG(obj) == CONTINUATION_POINTER_LOWTAG;
 }
 
 static inline void pop_cont() {
   cont = C(cont)->saved_cont;
-}
-
-static inline ref_t continuation(cont_t fn, ref_t saved_cont) {
-  ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
-  C(obj)->tag = CONTINUATION_TAG;
-  C(obj)->fn = fn;
-  C(obj)->expand = NO;
-  C(obj)->saved_cont = saved_cont;
-  C(obj)->closure = isnil(saved_cont) ? NIL : C(saved_cont)->closure;
-  C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
-  return obj;
 }
 
 static void bind(ref_t symbol, ref_t value) {

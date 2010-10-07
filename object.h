@@ -24,12 +24,7 @@ ref_t check_list(ref_t obj);
 ref_t check_symbol(ref_t obj);
 
 /* Constructors */
-ref_t cons(ref_t car, ref_t cdr);
 ref_t integer(int i);
-ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest);
-ref_t builtin(ref_t formals, fn_t body, int arity, bool rest);
-ref_t string(const char *str);
-ref_t symbol(const char *str);
 
 /* Functions */
 ref_t getbody(ref_t obj);

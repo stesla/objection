@@ -6,11 +6,6 @@
 #include "gc.h"
 #include "object.h"
 
-#define CONS(obj) ((struct cons *) ((obj) - LIST_POINTER_LOWTAG))
-#define FN(obj) ((struct function *) ((obj) - FUNCTION_POINTER_LOWTAG))
-#define STRING(obj) ((struct string *) ((obj) - OTHER_POINTER_LOWTAG))
-#define SYMBOL(obj) ((struct symbol *) ((obj) - OTHER_POINTER_LOWTAG))
-
 /**
  ** Type Predicates
  **/
@@ -94,13 +89,6 @@ ref_t check_symbol(ref_t obj) {
  ** Constructors
  **/
 
-ref_t cons(ref_t car, ref_t cdr) {
-  ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
-  CONS(obj)->tag = CONS_TAG;
-  CONS(obj)->car = car, CONS(obj)->cdr = cdr;
-  return obj;
-}
-
 #define FIXNUM_MAX  536870911
 #define FIXNUM_MIN -536870912
 
@@ -109,41 +97,6 @@ ref_t integer(int i) {
     return i << 2;
   error("bignums are not yet supported");
   return NIL;
-}
-
-static ref_t alloc_function(fn_t fn, ref_t formals, ref_t body, ref_t closure, size_t arity, bool rest) {
-  ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_LOWTAG);
-  FN(obj)->tag = FUNCTION_TAG;
-  FN(obj)->fn = fn;
-  FN(obj)->formals = formals;
-  FN(obj)->body = body;
-  FN(obj)->closure = closure;
-  FN(obj)->arity = arity;
-  FN(obj)->rest = rest;
-  return obj;
-}
-
-ref_t lambda(ref_t formals, ref_t body, ref_t closure, int arity, bool rest) {
-  return alloc_function(NULL, formals, body, closure, arity, rest);
-}
-
-ref_t builtin(ref_t formals, fn_t body, int arity, bool rest) {
-  return alloc_function(body, formals, NIL, NIL, arity, rest);
-}
-
-ref_t string(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct string) + strlen(str), OTHER_POINTER_LOWTAG);
-  STRING(obj)->tag = STRING_TAG;
-  strcpy(STRING(obj)->bytes, str);
-  return obj;
-}
-
-ref_t symbol(const char *str) {
-  ref_t obj = gc_alloc(sizeof(struct symbol) + strlen(str), OTHER_POINTER_LOWTAG);
-  SYMBOL(obj)->tag = SYMBOL_TAG;
-  SYMBOL(obj)->fvalue = SYMBOL(obj)->value = UNBOUND;
-  strcpy(SYMBOL(obj)->name, str);
-  return obj;
 }
 
 /**
