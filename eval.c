@@ -116,21 +116,20 @@ static action_t cont_apply_arg() {
 }
 
 static action_t cont_apply_apply() {
-  ref_t func = C(cont)->val, args = expr;
-  ref_t formals = getformals(func);
-  size_t arity = getarity(func);
-  C(cont)->closure = getclosure(func);
-  for(; arity > 0; arity--, formals = cdr(formals), args = cdr(args))
-    bind(car(formals), car(args));
-  if (!isnil(formals))
-    bind(car(formals), args);
-  init_vals(cont);
-  if (isbuiltin(func)) {
-    getfn(func)();
+  size_t arity = getarity(C(cont)->val);
+  C(cont)->closure = getclosure(C(cont)->val);
+  C(cont)->args1 = expr;
+  C(cont)->args2 = getformals(C(cont)->val);
+  for(; arity > 0; arity--, C(cont)->args2 = cdr(C(cont)->args2), C(cont)->args1 = cdr(C(cont)->args1))
+    bind(car(C(cont)->args2), car(C(cont)->args1));
+  if (!isnil(C(cont)->args2))
+    bind(car(C(cont)->args2), C(cont)->args1);
+  if (isbuiltin(C(cont)->val)) {
+    getfn(C(cont)->val)();
     pop_cont();
   }
   else
-    eval_do(getbody(func));
+    eval_do(getbody(C(cont)->val));
   return ACTION_APPLY_CONT;
 }
 
