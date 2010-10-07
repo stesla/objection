@@ -9,9 +9,6 @@
 #include "print.h"
 #include <stdio.h>
 
-/* symbols we use in the code below, they are interned by init_eval */
-static ref_t sym_amp, sym_args, sym_do, sym_fn, sym_if, sym_quote;
-
 inline bool iscontinuation(ref_t obj) {
   return LOWTAG(obj) == CONTINUATION_POINTER_LOWTAG;
 }
@@ -143,7 +140,7 @@ static action_t cont_fn() {
     error("invalid function: formals must be a list");
   for(; !isnil(formals); arity++, formals = cdr(formals)) {
     ref_t sym = car(formals);
-    if (sym == sym_amp) {
+    if (sym == intern("&")) {
       if (length(cdr(formals)) != 1)
         error("invalid function: must have exactly one symbol after &");
       rest = YES;
@@ -174,13 +171,13 @@ static action_t cont_if_branches() {
 static action_t cont_list() {
   ref_t sym = check_symbol(car(expr));
   expr = cdr(expr);
-  if (sym == sym_do)
+  if (sym == intern("do"))
     eval_do(expr);
-  else if (sym == sym_fn)
+  else if (sym == intern("fn"))
     C(cont)->fn = cont_fn;
-  else if (sym == sym_if)
+  else if (sym == intern("if"))
     C(cont)->fn = cont_if;
-  else if (sym == sym_quote)
+  else if (sym == intern("quote"))
     C(cont)->fn = cont_quote;
   else
     eval_apply(get_function(sym));
@@ -230,23 +227,23 @@ static action_t cont_symbol() {
 }
 
 static void fn_apply() {
-  eval_apply(check_function(lookup(sym_fn)));
+  eval_apply(check_function(lookup(intern("fn"))));
   cont = continuation(NULL, cont);
-  expr = check_list(lookup(sym_args));
+  expr = check_list(lookup(intern("args")));
 }
 
 static void fn_macroexpand() {
   C(cont)->val = C(cont)->args1 = C(cont)->args2 = NIL;
   C(cont)->fn = cont_macroexpand;
   cont = continuation(NULL, cont);
-  expr = lookup(sym_args);
+  expr = lookup(intern("args"));
 }
 
 static void fn_macroexpand1() {
   C(cont)->val = C(cont)->args1 = C(cont)->args2 = NIL;
   C(cont)->fn = cont_macroexpand1;
   cont = continuation(NULL, cont);
-  expr = lookup(sym_args);
+  expr = lookup(intern("args"));
 }
 
 void eval() {
@@ -278,13 +275,7 @@ void eval() {
 }
 
 void init_eval() {
-  sym_amp = intern("&");
-  sym_args = intern("args");
-  sym_do = intern("do");
-  sym_fn = intern("fn");
-  sym_if = intern("if");
-  sym_quote = intern("quote");
-  set_function(intern("apply"), builtin(cons(sym_fn, cons(sym_args, NIL)), fn_apply, 2, NO));
-  set_function(intern("macroexpand"), builtin(cons(sym_args, NIL), fn_macroexpand, 1, NO));
-  set_function(intern("macroexpand1"), builtin(cons(sym_args, NIL), fn_macroexpand1, 1, NO));
+  set_function(intern("apply"), builtin(cons(intern("fn"), cons(intern("args"), NIL)), fn_apply, 2, NO));
+  set_function(intern("macroexpand"), builtin(cons(intern("args"), NIL), fn_macroexpand, 1, NO));
+  set_function(intern("macroexpand1"), builtin(cons(intern("args"), NIL), fn_macroexpand1, 1, NO));
 }
