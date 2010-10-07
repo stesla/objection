@@ -22,10 +22,6 @@ static inline void pop_cont() {
   cont = C(cont)->saved_cont;
 }
 
-static inline void init_vals(ref_t obj) {
-  C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
-}
-
 static inline ref_t continuation(cont_t fn, ref_t saved_cont) {
   ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
   C(obj)->tag = CONTINUATION_TAG;
@@ -33,7 +29,7 @@ static inline ref_t continuation(cont_t fn, ref_t saved_cont) {
   C(obj)->expand = NO;
   C(obj)->saved_cont = saved_cont;
   C(obj)->closure = isnil(saved_cont) ? NIL : C(saved_cont)->closure;
-  init_vals(obj);
+  C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
   return obj;
 }
 
@@ -71,7 +67,7 @@ static action_t cont_quote();
 static action_t cont_symbol();
 
 static inline void eval_apply(ref_t obj) {
-  C(cont)->fn = cont_apply, C(cont)->val = obj;
+  C(cont)->fn = cont_apply, C(cont)->val = obj, C(cont)->args1 = C(cont)->args2 = NIL;
 }
 
 static inline void eval_do(ref_t obj) {
@@ -85,18 +81,15 @@ static inline action_t eval_expr(ref_t obj) {
 }
 
 static action_t cont_apply() {
-  ref_t func = C(cont)->val;
-  size_t len = length(expr), arity = getarity(func);
-  if (hasrest(func)) {
+  size_t len = length(expr), arity = getarity(C(cont)->val);
+  if (hasrest(C(cont)->val)) {
     if (len < arity)
       argument_error(len);
   } else {
     if (len != arity)
       argument_error(len);
   }
-  init_vals(cont);
-  C(cont)->fn = cont_apply_arg, C(cont)->val = func,
-    C(cont)->args1 = cdr(expr);
+  C(cont)->fn = cont_apply_arg, C(cont)->args1 = cdr(expr);
   return eval_expr(car(expr));
 }
 
@@ -257,14 +250,14 @@ static void fn_apply() {
 }
 
 static void fn_macroexpand() {
-  init_vals(cont);
+  C(cont)->val = C(cont)->args1 = C(cont)->args2 = NIL;
   C(cont)->fn = cont_macroexpand;
   cont = continuation(NULL, cont);
   expr = lookup(sym_args);
 }
 
 static void fn_macroexpand1() {
-  init_vals(cont);
+  C(cont)->val = C(cont)->args1 = C(cont)->args2 = NIL;
   C(cont)->fn = cont_macroexpand1;
   cont = continuation(NULL, cont);
   expr = lookup(sym_args);
