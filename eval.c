@@ -149,7 +149,7 @@ static action_t cont_eval() {
 }
 
 static action_t cont_fn() {
-  ref_t formals = car(expr), body = cdr(expr);
+  ref_t formals = car(expr);
   size_t arity = 0;
   bool rest = NO;
   if (!islist(formals))
@@ -165,9 +165,8 @@ static action_t cont_fn() {
       break;
     }
   }
-  formals = car(expr);
   pop_cont();
-  expr = lambda(formals, body, C(cont)->closure, arity, rest);
+  expr = lambda(car(expr), cdr(expr), C(cont)->closure, arity, rest);
   return ACTION_APPLY_CONT;
 }
 
