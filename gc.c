@@ -8,9 +8,13 @@
 
 #define ALIGNED_SIZE(size) (((size) + LOWTAG_MASK) & ~LOWTAG_MASK)
 
+/* GC ROOTS */
 ref_t cont = NIL;
 ref_t expr = NIL;
 ref_t symbols = NIL;
+static ref_t gc_car = NIL, gc_cdr = NIL;
+static ref_t gc_saved_cont = NIL;
+static ref_t gc_formals = NIL, gc_body = NIL, gc_closure = NIL;
 
 static void *memory;
 static void *next;
@@ -186,6 +190,12 @@ static void gc_collect(size_t to_size) {
   unscanned = next;
   cont = gc_lookup(cont);
   expr = gc_lookup(expr);
+  gc_body = gc_lookup(gc_body);
+  gc_car = gc_lookup(gc_car);
+  gc_cdr = gc_lookup(gc_cdr);
+  gc_closure = gc_lookup(gc_closure);
+  gc_formals = gc_lookup(gc_formals);
+  gc_saved_cont = gc_lookup(gc_saved_cont);
   symbols = gc_lookup(symbols);
   while (unscanned != next) {
     gc_copy_refs(unscanned);
@@ -215,19 +225,21 @@ bool ispointer(ref_t obj) {
 }
 
 ref_t cons(ref_t car, ref_t cdr) {
+  gc_car = car, gc_cdr = cdr;
   ref_t obj = gc_alloc(sizeof(struct cons), LIST_POINTER_LOWTAG);
   CONS(obj)->tag = CONS_TAG;
-  CONS(obj)->car = car, CONS(obj)->cdr = cdr;
+  CONS(obj)->car = gc_car, CONS(obj)->cdr = gc_cdr;
   return obj;
 }
 
 static ref_t alloc_function(fn_t fn, ref_t formals, ref_t body, ref_t closure, size_t arity, bool rest) {
+  gc_formals = formals, gc_body = body, gc_closure = closure;
   ref_t obj = gc_alloc(sizeof(struct function), FUNCTION_POINTER_LOWTAG);
   FN(obj)->tag = FUNCTION_TAG;
   FN(obj)->fn = fn;
-  FN(obj)->formals = formals;
-  FN(obj)->body = body;
-  FN(obj)->closure = closure;
+  FN(obj)->formals = gc_formals;
+  FN(obj)->body = gc_body;
+  FN(obj)->closure = gc_closure;
   FN(obj)->arity = arity;
   FN(obj)->rest = rest;
   return obj;
@@ -242,12 +254,13 @@ ref_t builtin(ref_t formals, fn_t body, int arity, bool rest) {
 }
 
 ref_t continuation(cont_t fn, ref_t saved_cont) {
+  gc_saved_cont = saved_cont;
   ref_t obj = gc_alloc(sizeof(struct continuation), CONTINUATION_POINTER_LOWTAG);
   C(obj)->tag = CONTINUATION_TAG;
   C(obj)->fn = fn;
   C(obj)->expand = NO;
-  C(obj)->saved_cont = saved_cont;
-  C(obj)->closure = (saved_cont == NIL) ? NIL : C(saved_cont)->closure;
+  C(obj)->saved_cont = gc_saved_cont;
+  C(obj)->closure = (gc_saved_cont == NIL) ? NIL : C(gc_saved_cont)->closure;
   C(obj)->val = C(obj)->args1 = C(obj)->args2 = NIL;
   return obj;
 }
