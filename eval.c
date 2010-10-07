@@ -94,7 +94,6 @@ static action_t cont_apply() {
 }
 
 static action_t cont_apply_arg() {
-  ref_t first = car(C(cont)->args1), rest = cdr(C(cont)->args1);
   C(cont)->args2 = cons(expr, C(cont)->args2);
   if (isnil(C(cont)->args1)) {
     ref_t args = C(cont)->args2;
@@ -104,6 +103,7 @@ static action_t cont_apply_arg() {
     C(cont)->fn = cont_apply_apply;
     return ACTION_APPLY_CONT;
   }
+  ref_t first = car(C(cont)->args1), rest = cdr(C(cont)->args1);
   C(cont)->args1 = rest;
   return eval_expr(first);
 }
