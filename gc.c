@@ -72,13 +72,17 @@ static size_t gc_sizeof(void *obj) {
   }
 }
 
+static ref_t make_ref(void *obj, uint8_t lowtag) {
+  return ((ref_t) obj) + lowtag;
+}
+
 static ref_t gc_copy(ref_t old) {
   uint8_t lowtag = old & LOWTAG_MASK;
   void *from = (void *) (old - lowtag), *to;
   size_t size = gc_sizeof(from);
   to = gc_do_alloc(size);
   memcpy(to, from, size);
-  return ((ref_t) to) + lowtag;
+  return make_ref(to, lowtag);
 }
 
 static void gc_copy_refs(void *obj) {
@@ -220,10 +224,6 @@ void gc_init() {
 
 bool ispointer(ref_t obj) {
   return obj & 1;
-}
-
-static ref_t make_ref(void *obj, uint8_t lowtag) {
-  return ((ref_t) obj) + lowtag;
 }
 
 ref_t cons(ref_t car, ref_t cdr) {
