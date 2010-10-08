@@ -138,6 +138,7 @@ static void gc_copy_refs(void *obj) {
 
 static void gc_hash_init() {
   gc_hash = safe_malloc(GC_HASH_SIZE * sizeof(gc_ref *));
+  memset(gc_hash, 0, GC_HASH_SIZE * sizeof(gc_ref *));
 }
 
 static void gc_hash_free() {
