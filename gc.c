@@ -18,7 +18,7 @@ static ref_t gc_formals = NIL, gc_body = NIL, gc_closure = NIL;
 
 static void *memory;
 static void *next;
-static size_t page_size = 16*1024, remaining;
+static size_t page_size = 8*1024, remaining;
 
 typedef struct gc_ref gc_ref;
 struct gc_ref {
