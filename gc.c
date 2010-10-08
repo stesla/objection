@@ -54,22 +54,29 @@ static void *gc_do_alloc(size_t bytes) {
 }
 
 static size_t gc_sizeof(void *obj) {
+  size_t result;
   switch (((struct lispobj *) obj)->tag) {
   case CONS_TAG:
-    return sizeof(struct cons);
+    result = sizeof(struct cons);
+    break;
   case CONTINUATION_TAG:
-    return sizeof(struct continuation);
+    result = sizeof(struct continuation);
+    break;
   case STRING_TAG:
-    return sizeof(struct string) + strlen(((struct string *) obj)->bytes);
+    result = sizeof(struct string) + strlen(((struct string *) obj)->bytes);
+    break;
   case SYMBOL_TAG:
-    return sizeof(struct symbol) + strlen(((struct symbol *) obj)->name);
+    result = sizeof(struct symbol) + strlen(((struct symbol *) obj)->name);
+    break;
   case FUNCTION_TAG:
   case MACRO_TAG:
   case SPECIAL_FORM_TAG:
-    return sizeof(struct function);
+    result = sizeof(struct function);
+    break;
   default:
     abort();
   }
+  return ALIGNED_SIZE(result);
 }
 
 static ref_t make_ref(void *obj, uint8_t lowtag) {
